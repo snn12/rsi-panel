@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RSI Panel</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, Arial, sans-serif; background: #0f1420; color: #e8ecf1; padding: 12px; }
+  h1 { font-size: 20px; margin: 6px 0 2px; }
+  .sub { color: #8b94a7; font-size: 13px; margin-bottom: 10px; }
+  .bar { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+  input { flex: 1; min-width: 140px; padding: 10px; border-radius: 8px; border: 1px solid #2a3348; background: #1a2233; color: #fff; font-size: 16px; }
+  button { padding: 10px 14px; border-radius: 8px; border: 0; background: #2f81f7; color: #fff; font-size: 15px; }
+  button.ghost { background: #1a2233; border: 1px solid #2a3348; }
+  .card { background: #161d2e; border: 1px solid #232c44; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+  .row1 { display: flex; justify-content: space-between; align-items: center; }
+  .sym { font-weight: bold; font-size: 17px; }
+  .price { font-size: 15px; color: #aebdff; }
+  .del { background: transparent; color: #ff7b7b; font-size: 18px; padding: 4px 8px; }
+  .grid { display: flex; gap: 8px; margin-top: 10px; }
+  .tf { flex: 1; background: #0f1524; border-radius: 8px; padding: 8px; text-align: center; }
+  .tf small { color: #8b94a7; display: block; margin-bottom: 4px; }
+  .tf b { font-size: 18px; }
+  .ob { color: #ff6b6b; } .hot { color: #ffa94d; } .ok { color: #b2becd; } .cheap { color: #63e6be; } .os { color: #51cf66; }
+  .foot { color: #8b94a7; font-size: 12px; margin-top: 12px; line-height: 1.5; }
+  #status { font-size: 13px; color: #8b94a7; margin: 6px 0; }
+</style>
+</head>
+<body>
+<h1>RSI Panel</h1>
+<div class="sub">Bybit canlı data • RSI-14 • 1H / 4H / 1D</div>
+<div id="status">Yüklənir...</div>
+
+<div class="bar">
+  <input id="add" placeholder="Məs: SOLUSDT və ya ARBUSDT" autocapitalize="characters">
+  <button onclick="addSym()">+ Əlavə et</button>
+  <button class="ghost" onclick="refresh(true)">Yenilə</button>
+</div>
+
+<div id="list"></div>
+
+<div class="foot">
+  Qırmızı ≥70 overbought, Yaşıl ≤30 oversold.<br>
+  Data: Bybit public API. Tövsiyə deyil.<br>
+  Yeni cütlük demək üçün bura əlavə et, telefonda da yadda qalır.
+</div>
+
+<script>
+const DEFAULTS = ["BTCUSDT","ETHUSDT","SOLUSDT","BNBUSDT"];
+const TFS = {"1H":"60","4H":"240","1D":"D"};
+let symbols = [];
+try { symbols = JSON.parse(localStorage.getItem("rsi_symbols")) || [...DEFAULTS]; }
+catch(e){ symbols = [...DEFAULTS]; }
+
+function save(){ localStorage.setItem("rsi_symbols", JSON.stringify(symbols)); }
+
+function fmt(p){
+  p = Number(p);
+  if(p >= 1000) return p.toLocaleString("en-US",{maximumFractionDigits:1});
+  if(p >= 100) return p.toFixed(2);
+  if(p >= 1) return p.toFixed(3);
+  return p.toFixed(5);
+}
+function cls(r){
+  if(r==null) return "ok";
+  if(r>=70) return "ob"; if(r>=60) return "hot";
+  if(r>40) return "ok"; if(r>30) return "cheap"; return "os";
+}
+function rsi(closes, period=14){
+  if(closes.length < period+1) return null;
+  let g=[], l=[];
+  for(let i=1;i<closes.length;i++){ let c=closes[i]-closes[i-1]; g.push(Math.max(c,0)); l.push(Math.max(-c,0)); }
+  let ag = g.slice(0,period).reduce((a,b)=>a+b,0)/period;
+  let al = l.slice(0,period).reduce((a,b)=>a+b,0)/period;
+  if(al===0) return 100;
+  for(let i=period;i<g.length;i++){ ag=(ag*(period-1)+g[i])/period; al=(al*(period-1)+l[i])/period; }
+  if(al===0) return 100;
+  let rs=ag/al; return 100-(100/(1+rs));
+}
+async function fetchCloses(sym, interval){
+  const urls = [
+    `https://api.bybit.com/v5/market/kline?category=linear&symbol=${sym}&interval=${interval}&limit=100`,
+    `https://api.bybit.com/v5/market/kline?category=spot&symbol=${sym}&interval=${interval}&limit=100`
+  ];
+  for(const u of urls){
+    try{
+      const r = await fetch(u); const j = await r.json();
+      if(j.retCode===0 && j.result && j.result.list && j.result.list.length>14){
+        const rev = [...j.result.list].reverse();
+        return rev.map(x=>Number(x[4]));
+      }
+    }catch(e){}
+  }
+  return null;
+}
+async function loadOne(sym){
+  const out = {sym, price:null, r:{}};
+  for(const [label, iv] of Object.entries(TFS)){
+    const c = await fetchCloses(sym, iv);
+    if(c){ out.price = c[c.length-1]; out.r[label]=rsi(c,14); }
+    else out.r[label]=null;
+  }
+  return out;
+}
+function render(items){
+  const el = document.getElementById("list"); el.innerHTML="";
+  items.forEach(o=>{
+    const d=document.createElement("div"); d.className="card";
+    const r1=o.r["1H"], r4=o.r["4H"], rD=o.r["1D"];
+    d.innerHTML =
+      `<div class="row1"><span class="sym">${o.sym}</span>`+
+      `<span class="price">${o.price!=null?fmt(o.price):"-"}</span>`+
+      `<button class="del" onclick="delSym('${o.sym}')">×</button></div>`+
+      `<div class="grid">`+
+      `<div class="tf"><small>1H</small><b class="${cls(r1)}">${r1!=null?r1.toFixed(1):"-"}</b></div>`+
+      `<div class="tf"><small>4H</small><b class="${cls(r4)}">${r4!=null?r4.toFixed(1):"-"}</b></div>`+
+      `<div class="tf"><small>1D</small><b class="${cls(rD)}">${rD!=null?rD.toFixed(1):"-"}</b></div>`+
+      `</div>`;
+    el.appendChild(d);
+  });
+}
+let timer=null, count=60;
+async function refresh(manual){
+  document.getElementById("status").textContent="Yenilənir...";
+  const items=[];
+  for(const s of symbols){ items.push(await loadOne(s)); }
+  render(items);
+  const t=new Date().toLocaleString("az-AZ",{timeZone:"Asia/Baku"});
+  document.getElementById("status").textContent=`Son yeniləmə: ${t} • Növbəti: 60 saniyə`;
+  count=60;
+  if(timer) clearInterval(timer);
+  timer=setInterval(()=>{
+    count--;
+    if(count<=0){ refresh(false); }
+    else document.getElementById("status").textContent=`Son yeniləmə: ${t} • Növbəti: ${count} saniyə`;
+  },1000);
+}
+function addSym(){
+  const v=document.getElementById("add").value.trim().toUpperCase().replace("/","");
+  if(!v) return;
+  if(!symbols.includes(v)){ symbols.push(v); save(); }
+  document.getElementById("add").value="";
+  refresh(true);
+}
+function delSym(s){ symbols=symbols.filter(x=>x!==s); save(); refresh(true); }
+document.getElementById("add").addEventListener("keydown",e=>{ if(e.key==="Enter") addSym(); });
+refresh(false);
+</script>
+</body>
+</html>
