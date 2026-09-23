@@ -44,6 +44,9 @@
   .mtag { color: #4F46E5; border-color: #4F46E5; }
   .chip { background: #fff; border-color: #E2E8F0; color: #0F1D38; }
   .chip.on { background: #0F1D38; border-color: #0F1D38; }
+  .bar2 { display: flex; gap: 8px; margin: 2px 0 4px; }
+  .bar2 input { flex: 1; min-width: 0; padding: 8px 10px; border-radius: 10px; border: 1px solid #E2E8F0; font-size: 14px; }
+  #thrBtn { width: auto; margin-top: 0; white-space: nowrap; }
   #status { background: #fff; border: 1px solid #E2E8F0; color: #64748B; }
   .dot { background: #4F46E5; }
   button.ghost { background: #fff; border-color: #E2E8F0; color: #0F1D38; }
@@ -64,9 +67,13 @@
 </div>
 <div class="chips" id="thr">
   <button class="chip" data-t="0">Hamısı</button>
-  <button class="chip" data-t="2">2+</button>
-  <button class="chip on" data-t="3">3+</button>
   <button class="chip" data-t="4">4+</button>
+  <button class="chip" data-t="6">6+</button>
+  <button class="chip" data-t="8">8+</button>
+</div>
+<div class="bar2">
+  <input id="thrInp" type="number" min="0" max="30" placeholder="Öz həddin: məs 7">
+  <button class="ghost" id="thrBtn" onclick="setThrCustom()">Tətbiq et</button>
 </div>
 <div id="status"><span class="dot"></span>Yüklənir...</div>
 <button class="ghost" onclick="refresh(true)">Yenilə</button>
@@ -83,8 +90,8 @@ const DEFAULTS = ["BTCUSDT","ETHUSDT","SOLUSDT","BNBUSDT","XRPUSDT","DOGEUSDT","
 const MARKETS = {stock:["AAPLUSDT","NVDAUSDT","TSLAUSDT","METAUSDT","MSTRUSDT","INTCUSDT","MUUSDT","SNDKUSDT","SKHYNIXUSDT","SAMSUNGUSDT","SOXLUSDT","SOXSUSDT","GOOGLUSDT","AMZNUSDT","MSFTUSDT","QQQUSDT","DELLUSDT","MRVLUSDT","AVGOUSDT","PLTRUSDT","NBISUSDT","TQQQUSDT","EWYUSDT"], com:["XAUUSDT","XAGUSDT","XAUTUSDT","PAXGUSDT"]};
 function marketOf(s){ if(MARKETS.stock.includes(s)) return "stock"; if(MARKETS.com.includes(s)) return "com"; return "crypto"; }
 const CHUNK = 15;
-let thr = 3;
-try{ thr = Number(localStorage.getItem("rsi_thr") || 3); }catch(e){}
+let thr = 4;
+try{ thr = Number(localStorage.getItem("rsi_thr") || 4); }catch(e){}
 let symbols = [];
 try {
   const saved = JSON.parse(localStorage.getItem("rsi_symbols"));
@@ -760,6 +767,11 @@ async function refresh(manual){
     if(count<=0){ refresh(false); }
     else st.innerHTML = `<span class='dot'></span>Son yeniləmə: ${t} • Növbəti: ${count} saniyə`;
   },1000);
+}
+function setThrCustom(){
+  const v = Math.round(Number(document.getElementById("thrInp").value));
+  if(!(v>=0) || v>30) return;
+  setThr(v);
 }
 function syncThr(){ document.querySelectorAll("#thr .chip").forEach(b => b.classList.toggle("on", Number(b.dataset.t)===thr)); }
 function setThr(t){ thr = t; try{ localStorage.setItem("rsi_thr", String(t)); }catch(e){} syncThr(); refresh(true); }
