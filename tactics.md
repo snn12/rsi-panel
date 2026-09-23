@@ -117,3 +117,11 @@
 - Sweep: son bağlı şamın fitili 30 şamlıq dibi/zirvəni deşir, amma bağlanış içəridə qalır → displasiya FVG-si ilə təsdiq.
 - İnversiya: qiymət FVG-dən bağlı şamla decisiv keçir → zona çevrilir (rezistans dəstəyə), retest-də giriş.
 - Status: coin.html-də sweep sətri + skor.html-də 1 xal.
+
+## T17 — SMT divergensiya BTC/ETH (CANLIDIR)
+- Qayda: eyni TF-də son 2 pivot müqayisəsi. BTC yeni zirvə + ETH yox = bearish SMT; BTC yeni dib + ETH yox = bullish SMT. Təsdiq deyil, kontekst siqnalıdır.
+- Status: BTC/ETH coin səhifəsində sətir + skor.html-də 1 xal (yalnız bu 2 simvol).
+
+## T19 — Daily sweep (CANLIDIR)
+- Qayda: dünənki şam əvvəlki günün high/low-nu fitillə deşir + içəridə bağlanır = setup. Stop gündəlik ekstremdən kənarda, TP əks hovuz / 2R+.
+- Status: coin.html-də sətir + skor.html-də 1 xal.

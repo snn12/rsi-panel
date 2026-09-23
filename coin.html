@@ -94,6 +94,11 @@
 </div>
 
 <div class="card">
+  <h3>HOVUZ XƏRİTƏSİ (ERL)</h3>
+  <div id="pools"></div>
+</div>
+
+<div class="card">
   <h3>İŞƏ DÜŞƏN TAKTİKALAR</h3>
   <div id="tacts"></div>
 </div>
@@ -182,6 +187,34 @@ function findSweepClosed(kl){
   seg.forEach(k=>{ if(k.h>hi)hi=k.h; if(k.l<lo)lo=k.l; });
   if(last.h>hi && last.c<hi) return {side:-1, level:hi};
   if(last.l<lo && last.c>lo) return {side:1, level:lo};
+  return null;
+}
+function pivHL(kl,k=3){
+  const H=[],L=[];
+  for(let i=k;i<kl.length-k;i++){
+    let h=true,l=true;
+    for(let j=1;j<=k;j++){
+      if(kl[i-j].h>=kl[i].h||kl[i+j].h>kl[i].h)h=false;
+      if(kl[i-j].l<=kl[i].l||kl[i+j].l<kl[i].l)l=false;
+    }
+    if(h)H.push({i,p:kl[i].h}); if(l)L.push({i,p:kl[i].l});
+  }
+  return{H,L};
+}
+function smtDiv(A,B){
+  const pa=pivHL(A),pb=pivHL(B);
+  const aH=pa.H.slice(-2),bH=pb.H.slice(-2),aL=pa.L.slice(-2),bL=pb.L.slice(-2);
+  if(aH.length===2&&bH.length===2&&aH[1].p>aH[0].p&&bH[1].p<bH[0].p)
+    return{dir:-1,txt:"Bearish SMT: BTC zirvəni təzələdi, ETH yox"};
+  if(aL.length===2&&bL.length===2&&aL[1].p<aL[0].p&&bL[1].p>bL[0].p)
+    return{dir:1,txt:"Bullish SMT: BTC dibi təzələdi, ETH yox"};
+  return null;
+}
+function dailySweep(kd){
+  if(!kd||kd.length<4)return null;
+  const d=kd[kd.length-2],p=kd[kd.length-3];
+  if(d.h>p.h&&d.c<p.h)return{dir:-1,txt:"Dünən zirvə süpürüldü (bearish setup)"};
+  if(d.l<p.l&&d.c>p.l)return{dir:1,txt:"Dünən dib süpürüldü (bullish setup)"};
   return null;
 }
 function t14signal(kl){
@@ -356,6 +389,22 @@ async function main(){
       : `Dəstək ${fmt(sup)} qırıldı — setup pozuldu → 0 xal`;
   }
   const trow = (id,txt) => `<div class="trow"><span class="tid">${id}</span><span>${txt}</span></div>`;
+  const kd = await fetchKlines(SYM,"D",30);
+  const dsw = dailySweep(kd);
+  let smtTxt = "— (yalnız BTC/ETH)";
+  if(SYM==="BTCUSDT"||SYM==="ETHUSDT"){
+    const other = SYM==="BTCUSDT"?"ETHUSDT":"BTCUSDT";
+    const ko = await fetchKlines(other,"240",60);
+    if(ko){
+      const sm = SYM==="BTCUSDT" ? smtDiv(h4,ko) : smtDiv(ko,h4);
+      smtTxt = sm ? sm.txt + " → 1 XAL" : "Divergensiya yoxdur";
+    } else smtTxt = "Data yoxdur";
+  }
+  const above=[...new Set(h4h.filter(x=>x>price))].sort((x,y)=>x-y).slice(0,3);
+  const below=[...new Set(h4l.filter(x=>x<price))].sort((x,y)=>y-x).slice(0,3);
+  const poolsHtml = above.map(x=>`<div class="krow"><span>Buy-side hovuz</span><span class="down">${fmt(x)} (+${((x-price)/price*100).toFixed(2)}%)</span></div>`).join("") +
+    below.map(x=>`<div class="krow"><span>Sell-side hovuz</span><span class="up">${fmt(x)} (−${((price-x)/price*100).toFixed(2)}%)</span></div>`).join("");
+  document.getElementById("pools").innerHTML = poolsHtml || `<div class="krow"><span>Hovuz</span><span class="flat">tapılmadı</span></div>`;
   document.getElementById("tacts").innerHTML =
     trow("T1", ex.length ? ex.join(" • ") : "Ekstrem yoxdur") +
     trow("T2", `1H: ${zone(r1)} • 4H: ${zone(r4)}`) +
@@ -367,7 +416,9 @@ async function main(){
     (t13txt ? trow("T13", t13txt) : "") +
     trow("T14", t14txt) +
     trow("T15", t15txt) +
-    trow("T16", t16txt);
+    trow("T16", t16txt) +
+    trow("T17", smtTxt) +
+    trow("T19", dsw ? dsw.txt + " → 1 XAL" : "Dünən sweep yoxdur");
 
   document.getElementById("status").textContent = "Son yeniləmə: " + new Date().toLocaleString("az-AZ",{timeZone:"Asia/Baku"});
   try{

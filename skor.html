@@ -74,7 +74,7 @@
 <div id="list"></div>
 
 <div class="foot">
-  Xal: T1 ekstrem • T2 zona • T4 trend • T6 momentum • T7 band • T11 funding • T12 həcm • T13 XAU • T14 ALQO • T15 FVG • T16 sweep.<br>
+  Xal: T1 ekstrem • T2 zona • T4 trend • T6 momentum • T7 band • T11 funding • T12 həcm • T13 XAU • T14 ALQO • T15 FVG • T16 sweep • T17 SMT • T19 daily.<br>
   Data: Bybit public API. Tövsiyə deyil.
 </div>
 
@@ -150,6 +150,32 @@ function findSweepClosed(kl){
   if(last.l<lo && last.c>lo) return {side:1, level:lo};
   return null;
 }
+function pivHL(kl,k=3){
+  const H=[],L=[];
+  for(let i=k;i<kl.length-k;i++){
+    let h=true,l=true;
+    for(let j=1;j<=k;j++){
+      if(kl[i-j].h>=kl[i].h||kl[i+j].h>kl[i].h)h=false;
+      if(kl[i-j].l<=kl[i].l||kl[i+j].l<kl[i].l)l=false;
+    }
+    if(h)H.push({i,p:kl[i].h}); if(l)L.push({i,p:kl[i].l});
+  }
+  return{H,L};
+}
+function smtDiv(A,B){
+  const pa=pivHL(A),pb=pivHL(B);
+  const aH=pa.H.slice(-2),bH=pb.H.slice(-2),aL=pa.L.slice(-2),bL=pb.L.slice(-2);
+  if(aH.length===2&&bH.length===2&&aH[1].p>aH[0].p&&bH[1].p<bH[0].p) return{dir:-1};
+  if(aL.length===2&&bL.length===2&&aL[1].p<aL[0].p&&bL[1].p>bL[0].p) return{dir:1};
+  return null;
+}
+function dailySweep(kd){
+  if(!kd||kd.length<4)return null;
+  const d=kd[kd.length-2],p=kd[kd.length-3];
+  if(d.h>p.h&&d.c<p.h)return{dir:-1};
+  if(d.l<p.l&&d.c>p.l)return{dir:1};
+  return null;
+}
 async function fetchFull(sym, interval, limit=50){
   const urls = [
     `https://api.bybit.com/v5/market/kline?category=linear&symbol=${sym}&interval=${interval}&limit=${limit}`,
@@ -204,6 +230,7 @@ function xtreme(x){
 async function scoreSym(sym){
   const [k1, k4] = await Promise.all([fetchFull(sym,"60"), fetchFull(sym,"240")]);
   const funding = await fetchFunding(sym);
+  const kd = await fetchFull(sym,"D",30);
   if(!k1 || !k4) return null;
   const c1 = k1.map(x=>x.c), c4 = k4.map(x=>x.c), v4 = k4.map(x=>x.v);
   const h4 = k4.map(x=>x.h), l4 = k4.map(x=>x.l);
@@ -253,7 +280,11 @@ async function scoreSym(sym){
     const xSup = Math.min(...l4.slice(-50)), xRes = Math.max(...h4.slice(-50));
     if(price>=xSup && r4>=50) hits.push("T13 XAU setup");
   }
-  return {sym, price, score: hits.length, max: isXau?11:10, hits};
+  if((sym==="BTCUSDT"||sym==="ETHUSDT") && SMT) hits.push("T17 SMT " + (SMT.dir===1?"bullish":"bearish"));
+  const dsw = dailySweep(kd);
+  if(dsw) hits.push("T19 daily-sweep");
+  const t17x = (sym==="BTCUSDT"||sym==="ETHUSDT") ? 1 : 0;
+  return {sym, price, score: hits.length, max: 11+t17x+(isXau?1:0), hits};
 }
 function render(items){
   const el = document.getElementById("list"); el.innerHTML="";
@@ -270,10 +301,16 @@ function render(items){
   });
 }
 let runId = 0, timer = null, count = 120;
+let SMT = null;
 async function refresh(manual){
   const my = ++runId;
   const st = document.getElementById("status");
   st.innerHTML = "<span class='dot'></span>Yüklənir 0/" + symbols.length + "...";
+  try{
+    const [kb, ke] = await Promise.all([fetchFull("BTCUSDT","240",60), fetchFull("ETHUSDT","240",60)]);
+    if(kb && ke) SMT = smtDiv(kb, ke);
+  }catch(e){}
+  if(my !== runId) return;
   const items = [];
   for(let i = 0; i < symbols.length; i += CHUNK){
     const part = await Promise.all(symbols.slice(i, i + CHUNK).map(scoreSym));
