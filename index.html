@@ -10,14 +10,12 @@
   h1 { font-size: 20px; margin: 4px 0 2px; font-weight: 600; letter-spacing: .2px; display: flex; align-items: center; gap: 8px; }
   .logo { width: 10px; height: 10px; border-radius: 3px; background: #0b8a7d; display: inline-block; }
   .sub { color: #6b7f74; font-size: 13px; margin-bottom: 12px; }
-  .nav { display: flex; gap: 8px; margin: 10px 0; }
-  .nav a { flex: 1; text-align: center; padding: 10px; background: #ffffff; border: 1px solid #e5ebe7; border-radius: 10px; color: #1a2b23; text-decoration: none; font-size: 14px; }
+  .nav { display: flex; gap: 6px; margin: 10px 0; }
+  .nav a { flex: 1; text-align: center; padding: 10px 2px; background: #ffffff; border: 1px solid #e5ebe7; border-radius: 10px; color: #1a2b23; text-decoration: none; font-size: 13px; }
   .nav a.on { background: #0b8a7d; border-color: #0b8a7d; color: #ffffff; font-weight: 600; }
   .chips { display: flex; gap: 8px; margin: 2px 0 4px; }
   .chip { flex: 1; padding: 8px; border-radius: 20px; border: 1px solid #e5ebe7; background: #ffffff; color: #1a2b23; font-size: 13px; }
   .chip.on { background: #1a2b23; border-color: #1a2b23; color: #ffffff; font-weight: 600; }
-  .mtag { font-size: 10px; font-weight: 600; color: #0b8a7d; border: 1px solid #0b8a7d; border-radius: 10px; padding: 1px 7px; vertical-align: 2px; margin-left: 4px; }
-  .empty { background: #ffffff; border: 1px solid #e5ebe7; border-radius: 12px; padding: 22px; text-align: center; color: #6b7f74; }
   .bar { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
   input { flex: 1; min-width: 140px; padding: 10px 12px; border-radius: 10px; border: 1px solid #e5ebe7; background: #f5f8f6; color: #1a2b23; font-size: 15px; }
   input:focus { outline: none; border-color: #0b8a7d; }
@@ -27,6 +25,8 @@
   .card { background: #ffffff; border: 1px solid #e5ebe7; border-radius: 12px; padding: 12px; margin-bottom: 8px; }
   .row1 { display: flex; justify-content: space-between; align-items: center; }
   .sym { font-weight: 600; font-size: 16px; }
+  a.slink { color: inherit; text-decoration: none; }
+  a.slink:active { color: #0b8a7d; }
   .price { font-size: 14px; color: #0b8a7d; font-weight: 600; font-variant-numeric: tabular-nums; }
   .del { background: transparent; border: 0; color: #e03131; font-size: 18px; padding: 4px 8px; opacity: .6; }
   .grid { display: flex; gap: 8px; margin-top: 10px; }
@@ -34,6 +34,8 @@
   .tf small { color: #6b7f74; display: block; margin-bottom: 3px; font-size: 12px; }
   .tf b { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
   .ob { color: #e03131; } .hot { color: #e8890c; } .ok { color: #6b7f74; } .cheap { color: #0b8a7d; } .os { color: #2f9e44; }
+  .mtag { font-size: 10px; font-weight: 600; color: #0b8a7d; border: 1px solid #0b8a7d; border-radius: 10px; padding: 1px 7px; vertical-align: 2px; margin-left: 4px; }
+  .empty { background: #ffffff; border: 1px solid #e5ebe7; border-radius: 12px; padding: 22px; text-align: center; color: #6b7f74; }
   .foot { color: #6b7f74; font-size: 12px; margin-top: 14px; line-height: 1.6; border-top: 1px solid #e5ebe7; padding-top: 10px; }
   #status { display: inline-block; font-size: 13px; color: #6b7f74; margin: 6px 0; background: #f5f8f6; border-radius: 20px; padding: 6px 12px; }
   .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #0b8a7d; margin-right: 6px; }
@@ -44,7 +46,9 @@
 <div class="sub">Bybit canlı data • RSI-14 • 1H / 4H</div>
 <div class="nav">
   <a href="index.html" class="on">Home</a>
-  <a href="signals.html">Siqnallar 75+ / 20-</a>
+  <a href="signals.html">Siqnallar</a>
+  <a href="calendar.html">Təqvim</a>
+  <a href="tactics.html">Taktikalar</a>
 </div>
 <div class="chips" id="chips">
   <button class="chip on" data-m="all">Hamısı</button>
@@ -63,8 +67,8 @@
 <div id="list"></div>
 
 <div class="foot">
+  Coin-in üstünə bas — detal analiz açılır.<br>
   Qırmızı ≥70 overbought, Yaşıl ≤30 oversold.<br>
-  Ekstrem siqnallar (≥75 / ≤20) üçün <b>Siqnallar</b> səhifəsinə bax.<br>
   Data: Bybit public API. Tövsiyə deyil.
 </div>
 
@@ -145,7 +149,7 @@ function render(items){
     const m = marketOf(o.sym);
     const tag = m==="crypto" ? "" : `<span class="mtag">${marketName(m)}</span>`;
     d.innerHTML =
-      `<div class="row1"><span class="sym">${o.sym}${tag}</span>`+
+      `<div class="row1"><span class="sym"><a class="slink" href="coin.html?symbol=${o.sym}">${o.sym}</a>${tag}</span>`+
       `<span class="price">${o.price!=null?fmt(o.price):"-"}</span>`+
       `<button class="del" onclick="delSym('${o.sym}')">×</button></div>`+
       `<div class="grid">`+

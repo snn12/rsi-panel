@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Taktikalar • RSI Panel</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0 auto; max-width: 640px; font-family: -apple-system, "Segoe UI", Arial, sans-serif; background: #ffffff; color: #1a2b23; padding: 16px 14px 28px; }
+  h1 { font-size: 20px; margin: 4px 0 2px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .logo { width: 10px; height: 10px; border-radius: 3px; background: #0b8a7d; display: inline-block; }
+  .sub { color: #6b7f74; font-size: 13px; margin-bottom: 12px; }
+  .nav { display: flex; gap: 6px; margin: 10px 0; }
+  .nav a { flex: 1; text-align: center; padding: 10px 2px; background: #ffffff; border: 1px solid #e5ebe7; border-radius: 10px; color: #1a2b23; text-decoration: none; font-size: 13px; }
+  .nav a.on { background: #0b8a7d; border-color: #0b8a7d; color: #ffffff; font-weight: 600; }
+  .card { background: #ffffff; border: 1px solid #e5ebe7; border-radius: 12px; padding: 12px; margin-bottom: 8px; }
+  .card.live { border-color: #0b8a7d; }
+  .row1 { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .tid { font-weight: 700; color: #0b8a7d; font-size: 14px; }
+  .st { font-size: 11px; font-weight: 600; border-radius: 10px; padding: 2px 8px; }
+  .st.live { background: #0b8a7d; color: #fff; }
+  .st.plan { background: #f5f8f6; color: #6b7f74; border: 1px solid #e5ebe7; }
+  .card b.name { font-size: 15px; }
+  .card p { font-size: 13px; color: #1a2b23; line-height: 1.55; margin: 6px 0; }
+  .card small { font-size: 12px; color: #6b7f74; line-height: 1.5; }
+  .foot { color: #6b7f74; font-size: 12px; margin-top: 14px; line-height: 1.6; border-top: 1px solid #e5ebe7; padding-top: 10px; }
+</style>
+</head>
+<body>
+<h1><span class="logo"></span>Taktikalar</h1>
+<div class="sub">12 taktika • Hansı marketə aiddir • Saytda hansı canlıdır</div>
+<div class="nav">
+  <a href="index.html">Home</a>
+  <a href="signals.html">Siqnallar</a>
+  <a href="calendar.html">Təqvim</a>
+  <a href="tactics.html" class="on">Taktikalar</a>
+</div>
+<div id="list"></div>
+<div class="foot">Yeni taktika üçün de — araşdırıb bura əlavə edirəm.<br>Data: Bybit public API. Tövsiyə deyil.</div>
+
+<script>
+const T = [
+ ["T1","RSI ekstrem reversal","PERP + SPOT","RSI-14; 75 / 81 / 87 / 20","Qiymət həddə çatanda dönüş zonası. Trenddə ilişib qala bilir — tək giriş deyil.",1],
+ ["T2","RSI trend zonası","HAMISI","RSI-14; 50 xətti","50 üstü bullish, altı bearish. Uptrenddə 40-50-dən sıçrayış long davamı.",0],
+ ["T3","RSI divergensiya","HAMISI","RSI-14, pivot 5/5","Qiymət dibi təzələyir, RSI yox — dönüş xəbərçisi. Təsdiq şərtdir.",0],
+ ["T4","EMA 12/50 krossover","TREND","EMA-12, EMA-50","Yuxarı kəsişmə long, aşağı çıxış. Sideways-də yalan siqnal verir.",0],
+ ["T5","Golden / Death cross","STOCK + SPOT","SMA-50, SMA-200","Uzunmüddətli struktur təsdiqi. Gecikən siqnaldır.",0],
+ ["T6","MACD 12/26/9","HAMISI","EMA-12/26, signal 9","Xətt siqnalı kəsəndə trend təsdiqi; histogram momentumu göstərir.",0],
+ ["T7","Bollinger %b","HAMISI","SMA-20, ±2 SD","Qiymət bandın harasındadır. Band tag-i tək başına siqnal deyil.",0],
+ ["T8","Bollinger squeeze","PERP + FOREX","BB 20/2, BandWidth","Sıxılma = böyük hərəkət yaxındır. Yönü demir — qırılma + həcm gözlə.",0],
+ ["T9","ATR stop ölçüsü","HAMISI","ATR-14, 2-3x","Stop = 2x ATR məsafə. Giriş deyil, risk filtridir.",0],
+ ["T10","Donchian breakout","FUTURES","20 şam max/min + həcm","20 şamlıq zirvə qırılması + həcm təsdiqi = long.",0],
+ ["T11","Funding kontrarian","YALNIZ PERP","+0.05% / -0.05% (8s)","Çox müsbət funding = long sıxlığı, flush riski. Kontekst kimi.",0],
+ ["T12","Həcm + RSI","HAMISI","Həcm 2x + RSI ekstrem","Həcm təsdiqsiz RSI ekstremi zəif sayılır.",0]
+];
+const el = document.getElementById("list");
+T.forEach(([id,name,mkt,par,rule,live])=>{
+  const d = document.createElement("div");
+  d.className = "card" + (live ? " live" : "");
+  d.innerHTML = `<div class="row1"><span class="tid">${id} • ${mkt}</span><span class="st ${live?"live":"plan"}">${live?"CANLI":"PLAN"}</span></div>` +
+    `<b class="name">${name}</b><p>${rule}</p><small>Parametr: ${par}</small>`;
+  el.appendChild(d);
+});
+</script>
+</body>
+</html>

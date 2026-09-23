@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coin • RSI Panel</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0 auto; max-width: 640px; font-family: -apple-system, "Segoe UI", Arial, sans-serif; background: #ffffff; color: #1a2b23; padding: 16px 14px 28px; }
+  h1 { font-size: 20px; margin: 4px 0 2px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .logo { width: 10px; height: 10px; border-radius: 3px; background: #0b8a7d; display: inline-block; }
+  .sub { color: #6b7f74; font-size: 13px; margin-bottom: 12px; }
+  .nav { display: flex; gap: 6px; margin: 10px 0; }
+  .nav a { flex: 1; text-align: center; padding: 10px 2px; background: #ffffff; border: 1px solid #e5ebe7; border-radius: 10px; color: #1a2b23; text-decoration: none; font-size: 13px; }
+  .back { display: inline-block; margin: 2px 0 8px; color: #0b8a7d; text-decoration: none; font-size: 14px; }
+  .card { background: #ffffff; border: 1px solid #e5ebe7; border-radius: 12px; padding: 12px; margin-bottom: 8px; }
+  .card h3 { margin: 0 0 8px; font-size: 14px; color: #6b7f74; font-weight: 600; }
+  .big { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .chg { font-size: 14px; font-weight: 600; }
+  .up { color: #2f9e44; } .down { color: #e03131; } .flat { color: #6b7f74; }
+  .verdict { font-size: 17px; font-weight: 700; padding: 10px; border-radius: 10px; text-align: center; }
+  .v-up2 { background: #e3f5e6; color: #1e7a34; } .v-up { background: #f0faf2; color: #2f9e44; }
+  .v-flat { background: #f5f8f6; color: #6b7f74; }
+  .v-down { background: #fff5f5; color: #e03131; } .v-down2 { background: #fbdcdc; color: #b42323; }
+  .krow { display: flex; justify-content: space-between; padding: 7px 0; border-top: 1px solid #eef2ef; font-size: 14px; }
+  .krow:first-of-type { border-top: 0; }
+  .krow span:last-child { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .trow { display: flex; gap: 8px; padding: 8px 0; border-top: 1px solid #eef2ef; font-size: 14px; }
+  .trow:first-of-type { border-top: 0; }
+  .tid { font-weight: 700; min-width: 28px; color: #0b8a7d; }
+  .mtag { font-size: 10px; font-weight: 600; color: #0b8a7d; border: 1px solid #0b8a7d; border-radius: 10px; padding: 1px 7px; vertical-align: 2px; margin-left: 4px; }
+  .analysis h3 { color: #1a2b23; font-size: 15px; margin: 12px 0 6px; }
+  .analysis p { font-size: 14px; line-height: 1.6; margin: 6px 0; }
+  .analysis ul { font-size: 14px; line-height: 1.6; margin: 6px 0; padding-left: 20px; }
+  .foot { color: #6b7f74; font-size: 12px; margin-top: 14px; line-height: 1.6; border-top: 1px solid #e5ebe7; padding-top: 10px; }
+  #status { font-size: 13px; color: #6b7f74; margin: 6px 0; }
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← Home</a>
+<div class="nav">
+  <a href="index.html">Home</a>
+  <a href="signals.html">Siqnallar</a>
+  <a href="calendar.html">Təqvim</a>
+  <a href="tactics.html">Taktikalar</a>
+</div>
+<h1><span class="logo"></span><span id="sym">...</span><span id="mtag"></span></h1>
+<div class="sub" id="status">Yüklənir...</div>
+
+<div class="card">
+  <div class="big" id="price">—</div>
+  <div class="chg" id="chg">—</div>
+</div>
+
+<div class="card">
+  <h3>ÜMUMİ İSTİQAMƏT (1H + 4H)</h3>
+  <div class="verdict v-flat" id="verdict">...</div>
+</div>
+
+<div class="card">
+  <h3>GÖSTƏRİCİLƏR (4H)</h3>
+  <div id="inds"></div>
+</div>
+
+<div class="card">
+  <h3>İŞƏ DÜŞƏN TAKTİKALAR</h3>
+  <div id="tacts"></div>
+</div>
+
+<div class="card analysis">
+  <h3 style="color:#6b7f74">QEYDLƏRİM</h3>
+  <div id="notes">Yüklənir...</div>
+</div>
+
+<div class="foot">Data: Bybit public API. Tövsiyə deyil.</div>
+
+<script>
+const MARKETS = {stock:["AAPLUSDT","NVDAUSDT","TSLAUSDT","METAUSDT","MSTRUSDT","INTCUSDT","MUUSDT","SNDKUSDT","SKHYNIXUSDT","SAMSUNGUSDT","SOXLUSDT","SOXSUSDT"], com:["XAUUSDT","XAGUSDT","XAUTUSDT"]};
+function marketOf(s){ if(MARKETS.stock.includes(s)) return "stock"; if(MARKETS.com.includes(s)) return "com"; return "crypto"; }
+const params = new URLSearchParams(location.search);
+const SYM = (params.get("symbol") || "BTCUSDT").toUpperCase().replace("/","").replace(" ","");
+document.getElementById("sym").textContent = SYM;
+const m = marketOf(SYM);
+if(m !== "crypto") document.getElementById("mtag").innerHTML = `<span class="mtag">${m==="stock"?"STOCK":"ƏMTƏƏ"}</span>`;
+document.title = SYM + " • RSI Panel";
+
+function fmt(p){
+  p = Number(p);
+  if(p >= 1000) return p.toLocaleString("en-US",{maximumFractionDigits:1});
+  if(p >= 100) return p.toFixed(2);
+  if(p >= 1) return p.toFixed(3);
+  return p.toFixed(5);
+}
+function rsi(closes, period=14){
+  if(closes.length < period+1) return null;
+  let g=[], l=[];
+  for(let i=1;i<closes.length;i++){ let c=closes[i]-closes[i-1]; g.push(Math.max(c,0)); l.push(Math.max(-c,0)); }
+  let ag = g.slice(0,period).reduce((a,b)=>a+b,0)/period;
+  let al = l.slice(0,period).reduce((a,b)=>a+b,0)/period;
+  if(al===0) return 100;
+  for(let i=period;i<g.length;i++){ ag=(ag*(period-1)+g[i])/period; al=(al*(period-1)+l[i])/period; }
+  if(al===0) return 100;
+  let rs=ag/al; return 100-(100/(1+rs));
+}
+function emaArr(src, p){
+  const k = 2/(p+1); const out = [];
+  let e = src.slice(0,p).reduce((a,b)=>a+b,0)/p;
+  out[p-1] = e;
+  for(let i=p;i<src.length;i++){ e = src[i]*k + e*(1-k); out[i] = e; }
+  return out;
+}
+function sma(src, p){ return src.slice(-p).reduce((a,b)=>a+b,0)/p; }
+function stdev(src, p){
+  const m = sma(src, p); const sl = src.slice(-p);
+  return Math.sqrt(sl.reduce((a,b)=>a+(b-m)*(b-m),0)/p);
+}
+function atr(h, l, c, p=14){
+  const trs = [];
+  for(let i=1;i<c.length;i++) trs.push(Math.max(h[i]-l[i], Math.abs(h[i]-c[i-1]), Math.abs(l[i]-c[i-1])));
+  let a = trs.slice(0,p).reduce((x,y)=>x+y,0)/p;
+  for(let i=p;i<trs.length;i++) a = (a*(p-1)+trs[i])/p;
+  return a;
+}
+async function fetchKlines(sym, interval, limit=100){
+  const urls = [
+    `https://api.bybit.com/v5/market/kline?category=linear&symbol=${sym}&interval=${interval}&limit=${limit}`,
+    `https://api.bybit.com/v5/market/kline?category=spot&symbol=${sym}&interval=${interval}&limit=${limit}`
+  ];
+  for(const u of urls){
+    try{
+      const r = await fetch(u); const j = await r.json();
+      if(j.retCode===0 && j.result && j.result.list && j.result.list.length>20){
+        return [...j.result.list].reverse().map(x=>({h:Number(x[2]), l:Number(x[3]), c:Number(x[4]), v:Number(x[5])}));
+      }
+    }catch(e){}
+  }
+  return null;
+}
+async function fetchFunding(sym){
+  try{
+    const r = await fetch(`https://api.bybit.com/v5/market/funding/history?category=linear&symbol=${sym}&limit=1`);
+    const j = await r.json();
+    if(j.retCode===0 && j.result && j.result.list && j.result.list.length) return Number(j.result.list[0].fundingRate)*100;
+  }catch(e){}
+  return null;
+}
+function md(src){
+  const esc = src.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  const bold = s => s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  let html = "", inList = false;
+  for(const ln of esc.split("\n")){
+    if(/^###? /.test(ln)){ if(inList){html+="</ul>";inList=false;} html += "<h3>"+bold(ln.replace(/^###? /,""))+"</h3>"; }
+    else if(/^- /.test(ln)){ if(!inList){html+="<ul>";inList=true;} html += "<li>"+bold(ln.slice(2))+"</li>"; }
+    else if(ln.trim()===""){ if(inList){html+="</ul>";inList=false;} }
+    else { if(inList){html+="</ul>";inList=false;} html += "<p>"+bold(ln)+"</p>"; }
+  }
+  if(inList) html += "</ul>";
+  return html;
+}
+
+async function main(){
+  document.getElementById("status").textContent = "Yüklənir...";
+  const [h1, h4] = await Promise.all([fetchKlines(SYM,"60"), fetchKlines(SYM,"240")]);
+  if(!h1 || !h4){
+    document.getElementById("status").textContent = "Belə simvol tapılmadı.";
+    document.getElementById("price").textContent = "—";
+    return;
+  }
+  const c1 = h1.map(x=>x.c), c4 = h4.map(x=>x.c);
+  const h4h = h4.map(x=>x.h), h4l = h4.map(x=>x.l);
+  const price = c4[c4.length-1];
+  const r1 = rsi(c1,14), r4 = rsi(c4,14);
+  const e12 = emaArr(c4,12).pop(), e50 = emaArr(c4,50).pop();
+  const e12m = emaArr(c4,12), e26m = emaArr(c4,26);
+  const macdLine = e12m.map((v,i)=> v==null||e26m[i]==null ? null : v-e26m[i]);
+  const macdVals = macdLine.filter(v=>v!=null);
+  const sigArr = emaArr(macdVals,9);
+  const macd = macdVals[macdVals.length-1], sig = sigArr[sigArr.length-1], hist = macd-sig;
+  const a = atr(h4h, h4l, c4, 14);
+  const s20 = sma(c4,20), sd = stdev(c4,20);
+  const pctB = (price-(s20-2*sd))/(4*sd);
+  const sup = Math.min(...h4l.slice(-50)), res = Math.max(...h4h.slice(-50));
+  const chg = c1.length>=25 ? (c1[c1.length-1]-c1[c1.length-25])/c1[c1.length-25]*100 : null;
+  const funding = await fetchFunding(SYM);
+
+  document.getElementById("price").textContent = fmt(price);
+  const chgEl = document.getElementById("chg");
+  if(chg==null){ chgEl.textContent = ""; }
+  else{
+    chgEl.textContent = (chg>=0?"+":"") + chg.toFixed(2) + "% (24s)";
+    chgEl.className = "chg " + (chg>0 ? "up" : chg<0 ? "down" : "flat");
+  }
+
+  let s = 0;
+  s += price>e50 ? 1 : -1;
+  s += hist>0 ? 1 : -1;
+  s += r4>55 ? 1 : r4<45 ? -1 : 0;
+  s += r1>55 ? 1 : r1<45 ? -1 : 0;
+  s += price>s20 ? 1 : -1;
+  const v = s>=3 ? ["GÜCLÜ YUXARI","v-up2"] : s>=1 ? ["YUXARI","v-up"] : s===0 ? ["YAN (RANGE)","v-flat"] : s>=-2 ? ["AŞAĞI","v-down"] : ["GÜCLÜ AŞAĞI","v-down2"];
+  const vEl = document.getElementById("verdict");
+  vEl.textContent = v[0]; vEl.className = "verdict " + v[1];
+
+  const row = (k,val,cls) => `<div class="krow"><span>${k}</span><span class="${cls||""}">${val}</span></div>`;
+  const rc = x => x==null ? "flat" : x>=70 ? "down" : x<=30 ? "up" : "flat";
+  document.getElementById("inds").innerHTML =
+    row("RSI 1H", r1==null?"—":r1.toFixed(1), rc(r1)) +
+    row("RSI 4H", r4==null?"—":r4.toFixed(1), rc(r4)) +
+    row("EMA 12 / 50 (4H)", fmt(e12)+" / "+fmt(e50), price>e50?"up":"down") +
+    row("MACD hist (4H)", hist.toFixed(4), hist>0?"up":"down") +
+    row("Bollinger %b (4H)", pctB.toFixed(2), pctB>0.8?"down":pctB<0.2?"up":"flat") +
+    row("ATR-14 (4H)", fmt(a)) +
+    row("Dəstək / Müqavimət (50 şam)", fmt(sup)+" / "+fmt(res));
+
+  const ex = [];
+  [["1H",r1],["4H",r4]].forEach(([k,x])=>{
+    if(x==null) return;
+    if(x>=87) ex.push(`${k} ${x.toFixed(1)} EKSTREM`);
+    else if(x>=81) ex.push(`${k} ${x.toFixed(1)} ÇOX QIZMIŞ`);
+    else if(x>=75) ex.push(`${k} ${x.toFixed(1)} QIZMIŞ`);
+    else if(x<=20) ex.push(`${k} ${x.toFixed(1)} SOYULMUŞ`);
+  });
+  const zone = x => x==null ? "—" : x>55 ? "bullish" : x<45 ? "bearish" : "neytral";
+  let fundTxt = "perp deyil / yoxdur";
+  if(funding!=null){
+    fundTxt = (funding>=0?"+":"")+funding.toFixed(4)+" %/8s — " +
+      (funding>=0.05 ? "kalabalık LONG, flush riski" : funding<=-0.05 ? "kalabalık SHORT, squeeze riski" : "neytral");
+  }
+  const trow = (id,txt) => `<div class="trow"><span class="tid">${id}</span><span>${txt}</span></div>`;
+  document.getElementById("tacts").innerHTML =
+    trow("T1", ex.length ? ex.join(" • ") : "Ekstrem yoxdur") +
+    trow("T2", `1H: ${zone(r1)} • 4H: ${zone(r4)}`) +
+    trow("T4", price>e50 ? "Qiymət EMA50 üstündə (trend yuxarı)" : "Qiymət EMA50 altında (trend aşağı)") +
+    trow("T6", hist>0 ? "MACD bullish (histogram +)" : "MACD bearish (histogram −)") +
+    trow("T7", `%b = ${pctB.toFixed(2)}` + (pctB>1 ? " (banddan kənar — güc)" : pctB<0 ? " (banddan kənar — güc)" : " (band içi)")) +
+    trow("T9", `2x ATR stop: long ${fmt(price-2*a)} / short ${fmt(price+2*a)}`) +
+    trow("T11", "Funding: " + fundTxt);
+
+  document.getElementById("status").textContent = "Son yeniləmə: " + new Date().toLocaleString("az-AZ",{timeZone:"Asia/Baku"});
+  try{
+    const r = await fetch("analysis/" + SYM.toLowerCase() + ".md");
+    if(!r.ok) throw 0;
+    document.getElementById("notes").innerHTML = md(await r.text());
+  }catch(e){
+    document.getElementById("notes").innerHTML = "<p style='color:#6b7f74'>Bu coin üçün hələ qeyd yoxdur — de, yazım.</p>";
+  }
+}
+main();
+</script>
+</body>
+</html>
