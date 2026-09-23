@@ -132,3 +132,9 @@
 - Təsdiq qatları: təzə flip (25) + RSI zonası (20) + ADX>25 və DI uyğunluğu (20) + kanal genişliyi>ATR (15) + HTF razılığı (20) = 0-100 skor; qrade A+ (85+) / A (70+) / B (55+) / C (40+) / D.
 - Siqnal: təzə flip + HTF razı + skor ≥ 55 = SSL BUY/SELL.
 - Status: coin.html-də SSL kartı + skor.html-də 1 xal (4H skor ≥ 55).
+
+## T21 — Kernel trend, BackQuant-stili (CANLIDIR)
+- Mənbə: Directional Kernel Filter təsviri — qauss çəki (exp(-0.5·d²)) + istiqamət çəkisi (exp(strength·uyğunluq), ATR ilə normallaşdırma).
+- Parametr: Fast 8 / Slow 21, width 1.0, strength 2.0, ATR-14.
+- Qayda: Fast > Slow = bullish. Təzə flip (≤5 bağlı şam) + 4H razılığı = KERNEL BUY/SELL.
+- Status: coin.html-də Kernel kartı + skor.html-də 1 xal.
