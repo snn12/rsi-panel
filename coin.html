@@ -89,6 +89,11 @@
 </div>
 
 <div class="card">
+  <h3>FVG ZONALARI (T15 / T16)</h3>
+  <div id="fvg"></div>
+</div>
+
+<div class="card">
   <h3>İŞƏ DÜŞƏN TAKTİKALAR</h3>
   <div id="tacts"></div>
 </div>
@@ -146,6 +151,38 @@ function atr(h, l, c, p=14){
   let a = trs.slice(0,p).reduce((x,y)=>x+y,0)/p;
   for(let i=p;i<trs.length;i++) a = (a*(p-1)+trs[i])/p;
   return a;
+}
+function findFVGs(kl){
+  const out = [];
+  for(let i=1;i<kl.length-1;i++){
+    if(kl[i+1].l > kl[i-1].h) out.push({i, dir:1, bot:kl[i-1].h, top:kl[i+1].l});
+    else if(kl[i+1].h < kl[i-1].l) out.push({i, dir:-1, bot:kl[i+1].h, top:kl[i-1].l});
+  }
+  out.forEach(z=>{
+    z.mit = false; z.inv = false;
+    for(let j=z.i+2;j<kl.length;j++){
+      const c = kl[j].c;
+      if(z.dir===1){
+        if(c < z.bot){ z.inv = true; break; }
+        if(kl[j].l <= z.top){ z.mit = true; break; }
+      } else {
+        if(c > z.top){ z.inv = true; break; }
+        if(kl[j].h >= z.bot){ z.mit = true; break; }
+      }
+    }
+  });
+  return out;
+}
+function findSweepClosed(kl){
+  if(kl.length<35) return null;
+  const closed = kl.slice(0,-1);
+  const last = closed[closed.length-1];
+  const seg = closed.slice(-31,-1);
+  let hi=-1e18, lo=1e18;
+  seg.forEach(k=>{ if(k.h>hi)hi=k.h; if(k.l<lo)lo=k.l; });
+  if(last.h>hi && last.c<hi) return {side:-1, level:hi};
+  if(last.l<lo && last.c>lo) return {side:1, level:lo};
+  return null;
 }
 function t14signal(kl){
   const closed = kl.slice(0,-1);
@@ -249,6 +286,30 @@ async function main(){
   vEl.textContent = v[0]; vEl.className = "verdict " + v[1];
 
   const tg = t14signal(h4);
+  const fz = findFVGs(h4);
+  const live = fz.filter(z=>!z.mit && !z.inv);
+  const ap = a/price*100;
+  const bullZ = live.filter(z=>z.dir===1 && z.top<price).sort((x,y)=>y.top-x.top)[0];
+  const bearZ = live.filter(z=>z.dir===-1 && z.bot>price).sort((x,y)=>x.bot-y.bot)[0];
+  const dBull = bullZ ? (price-bullZ.top)/price*100 : null;
+  const dBear = bearZ ? (bearZ.bot-price)/price*100 : null;
+  const sw = findSweepClosed(h4);
+  const nearB = bullZ && dBull<=3*ap, nearS = bearZ && dBear<=3*ap;
+  let t15txt = "Yaxın aktiv FVG yoxdur";
+  if(nearB || nearS){
+    t15txt = [nearB?`Bullish FVG ${fmt(bullZ.bot)}-${fmt(bullZ.top)} (${dBull.toFixed(2)}% üstündə)`:null,
+              nearS?`Bearish FVG ${fmt(bearZ.bot)}-${fmt(bearZ.top)} (${dBear.toFixed(2)}% altında)`:null].filter(Boolean).join(" • ") + " → 1 XAL";
+  }
+  let t16txt = "Sweep/inversiya yoxdur";
+  if(sw) t16txt = `${sw.side===1?"Sell-side sweep (dib)":"Buy-side sweep (zirvə)"} ${fmt(sw.level)} → 1 XAL`;
+  else {
+    const inv = fz.filter(z=>z.inv).slice(-3).find(z=> z.dir===1 ? (price<z.bot&&(z.bot-price)/price*100<=2*ap) : (price>z.top&&(price-z.top)/price*100<=2*ap));
+    if(inv) t16txt = `İnversiya: ${inv.dir===1?"bullish zona satıldı":"bearish zona alındı"} → 1 XAL`;
+  }
+  document.getElementById("fvg").innerHTML =
+    (bullZ?`<div class="krow"><span>Bullish FVG (dəstək)</span><span class="up">${fmt(bullZ.bot)} - ${fmt(bullZ.top)}</span></div>`:`<div class="krow"><span>Bullish FVG</span><span class="flat">yoxdur</span></div>`) +
+    (bearZ?`<div class="krow"><span>Bearish FVG (müqavimət)</span><span class="down">${fmt(bearZ.bot)} - ${fmt(bearZ.top)}</span></div>`:`<div class="krow"><span>Bearish FVG</span><span class="flat">yoxdur</span></div>`) +
+    `<div class="krow"><span>Sweep (son bağlı)</span><span class="${sw?"down":"flat"}">${sw?(sw.side===1?"dib süpürüldü":"zirvə süpürüldü"):"yoxdur"}</span></div>`;
   const aEl = document.getElementById("algo"), aD = document.getElementById("algod");
   if(tg.state==="BUY" || tg.state==="SELL"){
     const up = tg.state==="BUY";
@@ -304,7 +365,9 @@ async function main(){
     trow("T9", `2x ATR stop: long ${fmt(price-2*a)} / short ${fmt(price+2*a)}`) +
     trow("T11", "Funding: " + fundTxt) +
     (t13txt ? trow("T13", t13txt) : "") +
-    trow("T14", t14txt);
+    trow("T14", t14txt) +
+    trow("T15", t15txt) +
+    trow("T16", t16txt);
 
   document.getElementById("status").textContent = "Son yeniləmə: " + new Date().toLocaleString("az-AZ",{timeZone:"Asia/Baku"});
   try{

@@ -74,7 +74,7 @@
 <div id="list"></div>
 
 <div class="foot">
-  Xal: T1 ekstrem • T2 zona • T4 trend • T6 momentum • T7 band • T11 funding • T12 həcm • T13 XAU • T14 ALQO.<br>
+  Xal: T1 ekstrem • T2 zona • T4 trend • T6 momentum • T7 band • T11 funding • T12 həcm • T13 XAU • T14 ALQO • T15 FVG • T16 sweep.<br>
   Data: Bybit public API. Tövsiyə deyil.
 </div>
 
@@ -117,6 +117,38 @@ function atr(h, l, c, p=14){
   let a = trs.slice(0,p).reduce((x,y)=>x+y,0)/p;
   for(let i=p;i<trs.length;i++) a = (a*(p-1)+trs[i])/p;
   return a;
+}
+function findFVGs(kl){
+  const out = [];
+  for(let i=1;i<kl.length-1;i++){
+    if(kl[i+1].l > kl[i-1].h) out.push({i, dir:1, bot:kl[i-1].h, top:kl[i+1].l});
+    else if(kl[i+1].h < kl[i-1].l) out.push({i, dir:-1, bot:kl[i+1].h, top:kl[i-1].l});
+  }
+  out.forEach(z=>{
+    z.mit = false; z.inv = false;
+    for(let j=z.i+2;j<kl.length;j++){
+      const c = kl[j].c;
+      if(z.dir===1){
+        if(c < z.bot){ z.inv = true; break; }
+        if(kl[j].l <= z.top){ z.mit = true; break; }
+      } else {
+        if(c > z.top){ z.inv = true; break; }
+        if(kl[j].h >= z.bot){ z.mit = true; break; }
+      }
+    }
+  });
+  return out;
+}
+function findSweepClosed(kl){
+  if(kl.length<35) return null;
+  const closed = kl.slice(0,-1);
+  const last = closed[closed.length-1];
+  const seg = closed.slice(-31,-1);
+  let hi=-1e18, lo=1e18;
+  seg.forEach(k=>{ if(k.h>hi)hi=k.h; if(k.l<lo)lo=k.l; });
+  if(last.h>hi && last.c<hi) return {side:-1, level:hi};
+  if(last.l<lo && last.c>lo) return {side:1, level:lo};
+  return null;
 }
 async function fetchFull(sym, interval, limit=50){
   const urls = [
@@ -203,12 +235,25 @@ async function scoreSym(sym){
   if(spike && r4!=null && (r4>=70||r4<=30)) hits.push("T12 həcmli");
   const tg = t14signal(k4);
   if(tg.state!=="YOXL") hits.push("T14 " + tg.state);
+  const a4 = atr(h4,l4,c4,14);
+  const ap = a4/price*100;
+  const fz = findFVGs(k4);
+  const live = fz.filter(z=>!z.mit && !z.inv);
+  const nB = live.find(z=>z.dir===1 && z.top<price && (price-z.top)/price*100<=3*ap);
+  const nS = live.find(z=>z.dir===-1 && z.bot>price && (z.bot-price)/price*100<=3*ap);
+  if(nB || nS) hits.push("T15 FVG" + (nB&&nS ? " 2 tərəf" : nB ? " long" : " short"));
+  const sw = findSweepClosed(k4);
+  if(sw) hits.push("T16 sweep");
+  else {
+    const inv = fz.filter(z=>z.inv).slice(-3).find(z=> z.dir===1 ? (price<z.bot&&(z.bot-price)/price*100<=2*ap) : (price>z.top&&(price-z.top)/price*100<=2*ap));
+    if(inv) hits.push("T16 inversiya");
+  }
   const isXau = sym.indexOf("XAU")===0;
   if(isXau && r4!=null){
     const xSup = Math.min(...l4.slice(-50)), xRes = Math.max(...h4.slice(-50));
     if(price>=xSup && r4>=50) hits.push("T13 XAU setup");
   }
-  return {sym, price, score: hits.length, max: isXau?9:8, hits};
+  return {sym, price, score: hits.length, max: isXau?11:10, hits};
 }
 function render(items){
   const el = document.getElementById("list"); el.innerHTML="";

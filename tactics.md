@@ -106,3 +106,14 @@
 - Qayda (4H, yalnız BAĞLI şamlar — formalaşan şam sayılmır): EMA12/EMA50 tərəfi + MACD histogram tərəfi + RSI 50 tərəfi + həcm ortadan yüksək — 4/4 razılıq = BUY (hamısı bullish) və ya SELL (hamısı bearish). Əks halda YOXL (sakit rejim, filtr süzür).
 - TP/SL (ATR-14): SL 1.5x ATR, TP1 1.5x ATR (1:1), TP2 3x ATR (1:2). Entry = son bağlı şamın bağlanışı.
 - Status: coin.html-də T14 sətri + skor.html-də 1 xal.
+
+## T15 — FVG zonası, IRL ilə 1-ci yol (CANLIDIR)
+- Qayda (3 şam): bullish = 3-cü şamın low-u 1-ci şamın high-dan yuxarıda → zona [high1, low3]; bearish əksi.
+- Yalnız DOLDURULMAMIŞ zona sayılır (qiymət ora qayıtmayıbsa). Yaxınlıq şərti: zonaya məsafə ≤ 3x ATR.
+- 1-ci yol: qiymət zonaya retest edəndə əks istiqamətə giriş (bullish zonada long), hədəf əks ERL (range həddi).
+- Status: coin.html-də FVG kartı + skor.html-də 1 xal.
+
+## T16 — Sweep + inversiya, IRL ilə 2-ci yol (CANLIDIR)
+- Sweep: son bağlı şamın fitili 30 şamlıq dibi/zirvəni deşir, amma bağlanış içəridə qalır → displasiya FVG-si ilə təsdiq.
+- İnversiya: qiymət FVG-dən bağlı şamla decisiv keçir → zona çevrilir (rezistans dəstəyə), retest-də giriş.
+- Status: coin.html-də sweep sətri + skor.html-də 1 xal.
