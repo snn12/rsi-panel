@@ -111,7 +111,7 @@
 <div class="foot">Data: Bybit public API. Tövsiyə deyil.</div>
 
 <script>
-const MARKETS = {stock:["AAPLUSDT","NVDAUSDT","TSLAUSDT","METAUSDT","MSTRUSDT","INTCUSDT","MUUSDT","SNDKUSDT","SKHYNIXUSDT","SAMSUNGUSDT","SOXLUSDT","SOXSUSDT"], com:["XAUUSDT","XAGUSDT","XAUTUSDT"]};
+const MARKETS = {stock:["AAPLUSDT","NVDAUSDT","TSLAUSDT","METAUSDT","MSTRUSDT","INTCUSDT","MUUSDT","SNDKUSDT","SKHYNIXUSDT","SAMSUNGUSDT","SOXLUSDT","SOXSUSDT","GOOGLUSDT","AMZNUSDT","MSFTUSDT","QQQUSDT","DELLUSDT","MRVLUSDT","AVGOUSDT","PLTRUSDT","NBISUSDT","TQQQUSDT","EWYUSDT"], com:["XAUUSDT","XAGUSDT","XAUTUSDT","PAXGUSDT"]};
 function marketOf(s){ if(MARKETS.stock.includes(s)) return "stock"; if(MARKETS.com.includes(s)) return "com"; return "crypto"; }
 const params = new URLSearchParams(location.search);
 const SYM = (params.get("symbol") || "BTCUSDT").toUpperCase().replace("/","").replace(" ","");
