@@ -104,6 +104,11 @@
 </div>
 
 <div class="card">
+  <h3>RSI PRO + BAND + BOS (T27 / T28 / T29)</h3>
+  <div id="rbb"></div>
+</div>
+
+<div class="card">
   <h3>KORREL + MOMENT (T27 / T29 / T30)</h3>
   <div id="cvm"></div>
 </div>
@@ -533,6 +538,80 @@ function rmsRegime(c,len=45,sm=12){
   const fresh = reg[n]!==0 && (reg[n-1]!==reg[n]||reg[n-2]!==reg[n]||reg[n-3]!==reg[n]);
   return{reg:reg[n],fresh,r:r[n],sig:sig[n]};
 }
+function rsiSeries(c,p=14){
+  const out=new Array(c.length).fill(null);
+  let g=0,l=0;
+  for(let i=1;i<=p;i++){const d=c[i]-c[i-1];if(d>0)g+=d;else l-=d;}
+  let ag=g/p, al=l/p;
+  out[p]=al===0?100:100-100/(1+ag/al);
+  for(let i=p+1;i<c.length;i++){const d=c[i]-c[i-1];ag=(ag*(p-1)+Math.max(d,0))/p;al=(al*(p-1)+Math.max(-d,0))/p;out[i]=al===0?100:100-100/(1+ag/al);}
+  return out;
+}
+function rsiPro(kl){
+  const c=kl.map(x=>x.c);
+  const r=rsiSeries(c,14);
+  const n=c.length-1;
+  const rv=r.slice(-14);
+  if(rv.some(v=>v==null)) return null;
+  const sig=rv.reduce((a,b)=>a+b,0)/14;
+  const win=r.slice(-50);
+  if(win.some(v=>v==null)) return null;
+  const mn=Math.min(...win), mx=Math.max(...win);
+  const regime=(mn>40&&mx>60)?"BULL":(mx<60&&mn<40)?"BEAR":"MIXED";
+  const slope=r[n]-r[n-5];
+  const sl=slope>2?"RISING":slope<-2?"FALLING":"FLAT";
+  let s=0;
+  if(r[n]>=50)s++; if(r[n]>sig)s++; if(sig>=50)s++; if(slope>2)s++; if(regime==="BULL")s++;
+  return{bias:r[n]>=50?"bull":"bear",mom:r[n]>sig?"güclənir":"zəifləyir",regime,slope:sl,score:s,r:r[n],sig};
+}
+function wmaSeries(src,p){
+  const out=new Array(src.length).fill(null);
+  const den=p*(p+1)/2;
+  for(let i=p-1;i<src.length;i++){let s=0;for(let j=0;j<p;j++)s+=src[i-j]*(p-j);out[i]=s/den;}
+  return out;
+}
+function bandFlow(kl,len=30,sm=4,atrP=14,mult=1.5){
+  const c=kl.map(x=>x.c),h=kl.map(x=>x.h),l=kl.map(x=>x.l);
+  const w=wmaSeries(c,len);
+  const bv=[],bi=[];
+  w.forEach((v,i)=>{if(v!=null){bv.push(v);bi.push(i);}});
+  const se=emaSeries(bv,sm);
+  const base=new Array(c.length).fill(null);
+  se.forEach((v,j)=>{if(v!=null)base[bi[j]]=v;});
+  const aS=atrSeries(h,l,c,atrP);
+  const n=c.length-1;
+  let st=0, flipIdx=-1;
+  for(let i=Math.max(0,n-60);i<=n;i++){
+    if(base[i]==null||aS[i]==null) continue;
+    const up=base[i]+mult*aS[i], lo=base[i]-mult*aS[i];
+    if(c[i]>up){ if(st!==1){st=1;flipIdx=i;} }
+    else if(c[i]<lo){ if(st!==-1){st=-1;flipIdx=i;} }
+  }
+  if(st===0||flipIdx<0) return null;
+  const entry=c[flipIdx], aEntry=aS[flipIdx]||aS[n];
+  const tps=[1,2,3,4,5].map(k=> st===1?entry+k*aEntry:entry-k*aEntry);
+  return{state:st,flipAgo:n-flipIdx,entry,tps};
+}
+function bosChoch(kl){
+  const P=pivHL(kl,5);
+  const H=P.H,L=P.L;
+  if(H.length<2||L.length<2) return null;
+  const h1=H[H.length-1],h0=H[H.length-2],l1=L[L.length-1],l0=L[L.length-2];
+  const c=kl.map(x=>x.c);
+  const n=c.length-1;
+  const trend=(h1.p>h0.p&&l1.p>l0.p)?"up":(h1.p<h0.p&&l1.p<l0.p)?"down":"range";
+  for(let b=n-1;b>=Math.max(0,n-4);b--){
+    if(trend==="up"&&c[b]>h1.p) return{trend,event:"BOS+",bars:n-1-b};
+    if(trend==="up"&&c[b]<l1.p) return{trend,event:"CHoCH-",bars:n-1-b};
+    if(trend==="down"&&c[b]<l1.p) return{trend,event:"BOS-",bars:n-1-b};
+    if(trend==="down"&&c[b]>h1.p) return{trend,event:"CHoCH+",bars:n-1-b};
+    if(trend==="range"){
+      if(c[b]>h1.p) return{trend,event:"BOS+",bars:n-1-b};
+      if(c[b]<l1.p) return{trend,event:"BOS-",bars:n-1-b};
+    }
+  }
+  return{trend,event:null,bars:99};
+}
 function t14signal(kl){
   const closed = kl.slice(0,-1);
   if(closed.length<60) return {state:"YOXL"};
@@ -777,6 +856,14 @@ async function main(){
     krow2("OTE zona", ote ? `${ote.dir===1?"Bullish":"Bearish"} ${fmt(ote.lo)}-${fmt(ote.hi)} • içində: ${ote.inside?"BƏLİ":"yox"} • yaxın tier ${fmt(ote.best)}` : "aktiv zona yoxdur") +
     krow2("Bullish OB", obs.bull ? `${fmt(obs.bull.bot)} - ${fmt(obs.bull.top)}` : "yoxdur") +
     krow2("Bearish OB", obs.bear ? `${fmt(obs.bear.bot)} - ${fmt(obs.bear.top)}` : "yoxdur");
+  const rp = rsiPro(h4);
+  const bf = bandFlow(h4);
+  const bc = bosChoch(h4);
+  const rpPass = rp && ((rp.regime==="BULL"&&rp.score>=4)||(rp.regime==="BEAR"&&rp.score<=1));
+  document.getElementById("rbb").innerHTML =
+    `<div class="krow"><span>RSI Pro</span><span>${rp?`${rp.bias}/${rp.mom}/${rp.regime} • skor ${rp.score}/5`:"—"}</span></div>` +
+    `<div class="krow"><span>Band Flow</span><span>${bf?`${bf.state===1?"bullish":"bearish"} • flip ${bf.flipAgo}`:"—"}</span></div>` +
+    `<div class="krow"><span>BOS/CHoCH</span><span>${bc?`${bc.trend} • ${bc.event||"—"}`:"—"}</span></div>`;
   document.getElementById("tacts").innerHTML =
     trow("T1", ex.length ? ex.join(" • ") : "Ekstrem yoxdur") +
     trow("T2", `1H: ${zone(r1)} • 4H: ${zone(r4)}`) +
@@ -800,7 +887,10 @@ async function main(){
     trow("T26", rto!=null && rto>=0.7 ? `Retest ehtimalı ${(rto*100).toFixed(0)}% → 1 XAL` : "Yüksək ehtimallı retest yoxdur") +
     trow("T27", corrHit ? `BTC ilə güclü link (${corrTxt.split(" ")[0]}) → 1 XAL` : "Güçlü link yoxdur") +
     trow("T29", vp && ((vp.state===1&&vp.fresh&&!vp.ranging)||(vp.state===-1&&vp.fresh)) ? `VPM ${vp.state===1?"BUY":"SELL"} → 1 XAL` : "VPM siqnal yoxdur") +
-    trow("T30", rm && rm.reg!==0 && rm.fresh ? `RMS ${rm.reg===1?"bull":"bear"} → 1 XAL` : "RMS flip yoxdur");
+    trow("T30", rm && rm.reg!==0 && rm.fresh ? `RMS ${rm.reg===1?"bull":"bear"} → 1 XAL` : "RMS flip yoxdur") +
+    trow("T31", rp && ((rp.regime==="BULL"&&rp.score>=4)||(rp.regime==="BEAR"&&rp.score<=1)) ? `RSI Pro ${rp.regime==="BULL"?"bull "+rp.score:"bear "+(5-rp.score)} → 1 XAL` : "RSI Pro razılıq yoxdur") +
+    trow("T32", bf && bf.flipAgo<=3 ? `BAND ${bf.state===1?"BUY":"SELL"} • TP1 ${fmt(bf.tps[0])} → 1 XAL` : "Band siqnal yoxdur") +
+    trow("T33", bc && bc.event ? `${bc.event} • trend ${bc.trend} → 1 XAL` : "BOS/CHoCH yoxdur");
 
   document.getElementById("status").textContent = "Son yeniləmə: " + new Date().toLocaleString("az-AZ",{timeZone:"Asia/Baku"}) + (nyActive() ? " • NY sessiya" : " • sakit saat");
   try{

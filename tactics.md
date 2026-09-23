@@ -163,3 +163,32 @@
 - Mənbə: Smart Money Concept ML təsviri — random-walk (reflection) retest ehtimalı + gambler's ruin hovuz odds.
 - Qayda: son BOS-dan sonra 20 şamda retest ehtimalı ≥70% = 1 xal. Yuxarı/aşağı hovuzdan hansı öncə — faizlə göstərilir.
 - Status: coin.html-də EHTİMAL kartı + skor.html-də 1 xal.
+
+## T27 — BTC korrelyasiya linki (CANLIDIR)
+- Mənbə: Correlation Exposure Dashboard — log-return Pearson, cütlük əhatəsi.
+- Qayda: 4H-da BTC ilə |r|≥0.85 = klaster üzvü = 1 xal. Giriş yox, risk konteksti.
+- Status: coin.html-də kart + skor.html-də 1 xal.
+
+## T29 — Volume-Price momentum (CANLIDIR)
+- Mənbə: Volume Price Momentum təsviri — həcm+qiymət percentile rank, hamarlanmış, 70/30 hədlər, range filtri.
+- Qayda: təzə BUY flipi (range-də bloklanır) və ya SELL flipi = 1 xal.
+- Status: coin.html-də kart + skor.html-də 1 xal.
+
+## T30 — RMS RSI rejimi (CANLIDIR)
+- Mənbə: Different RSI təsviri — kvadratik momentum (len 45), EMA-12 siqnal, 80/20 zonalar.
+- Qayda: rejim flipi (bull/bear) = 1 xal.
+- Status: coin.html-də kart + skor.html-də 1 xal.
+
+## T31 — RSI Pro engine (CANLIDIR)
+- Mənbə: RSI Pro+ Suite təsviri — bias (50) + momentum (siqnal xətti) + rejim (50 şam 40/60) + slope + 0-5 Bull Score.
+- Qayda: bull rejimdə 4-5/5 və ya bear rejimdə 0-1/5 = 1 xal.
+- Status: coin.html-də kart + skor.html-də 1 xal.
+
+## T32 — Band Flow trend (CANLIDIR)
+- Mənbə: Uptrick Band Flow təsviri — WMA-30 + EMA-4 + ATR band ±1.5, yaddaşlı trend, TP pilləkəni 1-5x ATR.
+- Qayda: təzə band qırılması (≤3 şam) = 1 xal. TP1-5 Coin səhifəsində.
+- Status: coin.html-də kart + skor.html-də 1 xal.
+
+## T33 — BOS / CHoCH detektoru (CANLIDIR)
+- Qayda: pivot struktur + bağlı şamla qırılma. Trend istiqamətində = BOS (davam), əksinə = CHoCH (dönüş xəbəri). Təzə hadisə = 1 xal.
+- Status: coin.html-də kart + skor.html-də 1 xal.

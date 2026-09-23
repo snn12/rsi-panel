@@ -80,7 +80,13 @@ const T = [
  ["T23","OTE zonası","HAMISI","Swing + BOS + 0.618/0.705/0.79","Təsdiqli swing-in OTE cibində qiymət = setup.",1],
  ["T24","Order Block retest","HAMISI","Displasiya + əks şam body-si","Pozulmamış OB-yə retest = giriş zonası.",1],
  ["T25","MACD Pullback Sniper","HAMISI","MACD cross + 200EMA + sıfır xətt + ADX20","Pullback sonu kəsişmə + ATR 2x SL + 2R TP.",1],
- ["T26","Retest ehtimalı (ML-stili)","HAMISI","BOS + random-walk ehtimalı + hovuz odds","Retest ≥70% = setup. Hovuz öncəlik faizləri.",1]
+ ["T26","Retest ehtimalı (ML-stili)","HAMISI","BOS + random-walk ehtimalı + hovuz odds","Retest ≥70% = setup. Hovuz öncəlik faizləri.",1],
+ ["T27","BTC korrelyasiya linki","HAMISI","Log-return Pearson, |r|≥0.85","BTC ilə güclü ko-hərəkət = klaster üzvü (risk konteksti).",1],
+ ["T29","Volume-Price momentum","HAMISI","Həcm+qiymət percentile, hamarlanmış","Təzə BUY/SELL flipi (range-də BUY bloklanır).",1],
+ ["T30","RMS RSI rejimi","HAMISI","Kvadratik momentum 45 + EMA-12","80/20 ekstrem + rejim flipi = siqnal.",1],
+ ["T31","RSI Pro engine","HAMISI","Bias+momentum+rejim+slope, 0-5 skor","Bull 4-5/5 və ya bear 0-1/5 = güclü razılıq.",1],
+ ["T32","Band Flow trend","HAMISI","WMA-30 + ATR band, yaddaşlı trend","Təzə band qırılması + TP1-5 ATR pilləkəni.",1],
+ ["T33","BOS / CHoCH detektoru","HAMISI","Pivot struktur + bağlı qırılma","Təzə BOS (davam) və ya CHoCH (dönüş xəbəri).",1]
 ];
 const el = document.getElementById("list");
 T.forEach(([id,name,mkt,par,rule,live])=>{
