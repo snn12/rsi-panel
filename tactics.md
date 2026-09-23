@@ -99,4 +99,10 @@
 
 ## Skor sistemi (CANLIDIR — skor.html)
 - Hər taktika 1 xal: T1 ekstrem • T2 zona • T4 trend • T6 momentum • T7 band • T11 funding • T12 həcm • T13 XAU setup (yalnız XAU).
-- Maksimum: 7 (XAU üçün 8). Səhifədə hədd seçimi: Hamısı / 2+ / 3+ / 4+, bal sırasına görə düzülür, keçən taktikaların hamısı görünür.
+- Maksimum: 8 (XAU üçün 9). Səhifədə hədd seçimi: Hamısı / 2+ / 3+ / 4+, bal sırasına görə düzülür, keçən taktikaların hamısı görünür.
+
+## T14 — ALQO siqnal, GainzAlgo-stili (CANLIDIR)
+- Orijinal GainzAlgo V2 Alpha pullu/qapalı koddur (yalnız TradingView invite) — sayta köçmür. Bu, onun stilində bizim mühərrikimizdir: BUY/SELL + hazır TP/SL, repaint-siz.
+- Qayda (4H, yalnız BAĞLI şamlar — formalaşan şam sayılmır): EMA12/EMA50 tərəfi + MACD histogram tərəfi + RSI 50 tərəfi + həcm ortadan yüksək — 4/4 razılıq = BUY (hamısı bullish) və ya SELL (hamısı bearish). Əks halda YOXL (sakit rejim, filtr süzür).
+- TP/SL (ATR-14): SL 1.5x ATR, TP1 1.5x ATR (1:1), TP2 3x ATR (1:2). Entry = son bağlı şamın bağlanışı.
+- Status: coin.html-də T14 sətri + skor.html-də 1 xal.

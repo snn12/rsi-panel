@@ -74,7 +74,7 @@
 <div id="list"></div>
 
 <div class="foot">
-  Xal: T1 ekstrem • T2 zona • T4 trend • T6 momentum • T7 band • T11 funding • T12 həcm • T13 XAU setup.<br>
+  Xal: T1 ekstrem • T2 zona • T4 trend • T6 momentum • T7 band • T11 funding • T12 həcm • T13 XAU • T14 ALQO.<br>
   Data: Bybit public API. Tövsiyə deyil.
 </div>
 
@@ -111,6 +111,13 @@ function emaArr(src, p){
   return out;
 }
 function avg(a){ return a.reduce((x,y)=>x+y,0)/a.length; }
+function atr(h, l, c, p=14){
+  const trs = [];
+  for(let i=1;i<c.length;i++) trs.push(Math.max(h[i]-l[i], Math.abs(h[i]-c[i-1]), Math.abs(l[i]-c[i-1])));
+  let a = trs.slice(0,p).reduce((x,y)=>x+y,0)/p;
+  for(let i=p;i<trs.length;i++) a = (a*(p-1)+trs[i])/p;
+  return a;
+}
 async function fetchFull(sym, interval, limit=50){
   const urls = [
     `https://api.bybit.com/v5/market/kline?category=linear&symbol=${sym}&interval=${interval}&limit=${limit}`,
@@ -133,6 +140,26 @@ async function fetchFunding(sym){
     if(j.retCode===0 && j.result && j.result.list && j.result.list.length) return Number(j.result.list[0].fundingRate)*100;
   }catch(e){}
   return null;
+}
+function t14signal(kl){
+  const closed = kl.slice(0,-1);
+  if(closed.length<60) return {state:"YOXL"};
+  const c = closed.map(x=>x.c), v = closed.map(x=>x.v);
+  const h = closed.map(x=>x.h), l = closed.map(x=>x.l);
+  const e12 = emaArr(c,12).pop(), e50 = emaArr(c,50).pop();
+  const e12a = emaArr(c,12), e26a = emaArr(c,26);
+  const mv = e12a.map((x,i)=> x==null||e26a[i]==null?null:x-e26a[i]).filter(x=>x!=null);
+  const sa = emaArr(mv,9);
+  const hist = mv[mv.length-1]-sa[sa.length-1];
+  const r = rsi(c,14);
+  const vAvg = avg(v.slice(-20));
+  const a = atr(h,l,c,14);
+  const entry = c[c.length-1];
+  const bull = (e12>e50)+(hist>0)+(r>50)+(v[v.length-1]>vAvg);
+  const bear = (e12<e50)+(hist<0)+(r<50)+(v[v.length-1]>vAvg);
+  if(bull===4) return {state:"BUY", entry, sl:entry-1.5*a, tp1:entry+1.5*a, tp2:entry+3*a};
+  if(bear===4) return {state:"SELL", entry, sl:entry+1.5*a, tp1:entry-1.5*a, tp2:entry-3*a};
+  return {state:"YOXL"};
 }
 function xtreme(x){
   if(x==null) return null;
@@ -174,12 +201,14 @@ async function scoreSym(sym){
   if(funding!=null && funding>=0.05) hits.push("T11 long sıx");
   else if(funding!=null && funding<=-0.05) hits.push("T11 short sıx");
   if(spike && r4!=null && (r4>=70||r4<=30)) hits.push("T12 həcmli");
+  const tg = t14signal(k4);
+  if(tg.state!=="YOXL") hits.push("T14 " + tg.state);
   const isXau = sym.indexOf("XAU")===0;
   if(isXau && r4!=null){
     const xSup = Math.min(...l4.slice(-50)), xRes = Math.max(...h4.slice(-50));
     if(price>=xSup && r4>=50) hits.push("T13 XAU setup");
   }
-  return {sym, price, score: hits.length, max: isXau?8:7, hits};
+  return {sym, price, score: hits.length, max: isXau?9:8, hits};
 }
 function render(items){
   const el = document.getElementById("list"); el.innerHTML="";

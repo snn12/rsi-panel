@@ -68,7 +68,8 @@ const T = [
  ["T10","Donchian breakout","FUTURES","20 şam max/min + həcm","20 şamlıq zirvə qırılması + həcm təsdiqi = long.",0],
  ["T11","Funding kontrarian","YALNIZ PERP","+0.05% / -0.05% (8s)","Çox müsbət funding = long sıxlığı, flush riski. Kontekst kimi.",0],
  ["T12","Həcm + RSI","HAMISI","Həcm 2x + RSI ekstrem","Həcm təsdiqsiz RSI ekstremi zəif sayılır.",0],
- ["T13","XAU reversal setup","XAU (CUSTOM)","Dinamik dəstək (50 şam dibi); hədəf = zirvə + ölçülmüş hərəkət","Dəstək üstü + RSI-4H ≥ 50 = 1 xal. Dəstək qırılsa pozuldu.",1]
+ ["T13","XAU reversal setup","XAU (CUSTOM)","Dinamik dəstək (50 şam dibi); hədəf = zirvə + ölçülmüş hərəkət","Dəstək üstü + RSI-4H ≥ 50 = 1 xal. Dəstək qırılsa pozuldu.",1],
+ ["T14","ALQO siqnal (BUY/SELL + TP/SL)","HAMISI","EMA/MACD/RSI/həcm 4/4 razılığı + ATR-14","4/4 razılıq = siqnal: TP1 1.5xATR, TP2 3xATR, SL 1.5xATR. Yalnız bağlı şamlar (repaint yox).",1]
 ];
 const el = document.getElementById("list");
 T.forEach(([id,name,mkt,par,rule,live])=>{

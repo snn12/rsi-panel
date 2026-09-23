@@ -141,6 +141,27 @@ function atr(h, l, c, p=14){
   for(let i=p;i<trs.length;i++) a = (a*(p-1)+trs[i])/p;
   return a;
 }
+function t14signal(kl){
+  const closed = kl.slice(0,-1);
+  if(closed.length<60) return {state:"YOXL"};
+  const avgX = a=>a.reduce((x,y)=>x+y,0)/a.length;
+  const c = closed.map(x=>x.c), v = closed.map(x=>x.v);
+  const h = closed.map(x=>x.h), l = closed.map(x=>x.l);
+  const e12 = emaArr(c,12).pop(), e50 = emaArr(c,50).pop();
+  const e12a = emaArr(c,12), e26a = emaArr(c,26);
+  const mv = e12a.map((x,i)=> x==null||e26a[i]==null?null:x-e26a[i]).filter(x=>x!=null);
+  const sa = emaArr(mv,9);
+  const hist = mv[mv.length-1]-sa[sa.length-1];
+  const r = rsi(c,14);
+  const vAvg = avgX(v.slice(-20));
+  const a = atr(h,l,c,14);
+  const entry = c[c.length-1];
+  const bull = (e12>e50)+(hist>0)+(r>50)+(v[v.length-1]>vAvg);
+  const bear = (e12<e50)+(hist<0)+(r<50)+(v[v.length-1]>vAvg);
+  if(bull===4) return {state:"BUY", entry, sl:entry-1.5*a, tp1:entry+1.5*a, tp2:entry+3*a};
+  if(bear===4) return {state:"SELL", entry, sl:entry+1.5*a, tp1:entry-1.5*a, tp2:entry-3*a};
+  return {state:"YOXL"};
+}
 async function fetchKlines(sym, interval, limit=100){
   const urls = [
     `https://api.bybit.com/v5/market/kline?category=linear&symbol=${sym}&interval=${interval}&limit=${limit}`,
@@ -255,6 +276,8 @@ async function main(){
       ? `Dəstək ${fmt(sup)} üzərində • Hədəf ${fmt(res)} (${t1p>=0?"+":""}${t1p.toFixed(1)}%) / ${fmt(tgt2)} (${t2p>=0?"+":""}${t2p.toFixed(1)}%) • ${bull ? "bullish struktur → 1 XAL" : "ehtiyatlı (RSI<50) → 0 xal"}`
       : `Dəstək ${fmt(sup)} qırıldı — setup pozuldu → 0 xal`;
   }
+  const tg = t14signal(h4);
+  const t14txt = tg.state==="YOXL" ? "Siqnal yoxdur (sakit rejim — filtr süzür)" : `${tg.state} @ ${fmt(tg.entry)} • TP1 ${fmt(tg.tp1)} • TP2 ${fmt(tg.tp2)} • SL ${fmt(tg.sl)}`;
   const trow = (id,txt) => `<div class="trow"><span class="tid">${id}</span><span>${txt}</span></div>`;
   document.getElementById("tacts").innerHTML =
     trow("T1", ex.length ? ex.join(" • ") : "Ekstrem yoxdur") +
@@ -264,7 +287,8 @@ async function main(){
     trow("T7", `%b = ${pctB.toFixed(2)}` + (pctB>1 ? " (banddan kənar — güc)" : pctB<0 ? " (banddan kənar — güc)" : " (band içi)")) +
     trow("T9", `2x ATR stop: long ${fmt(price-2*a)} / short ${fmt(price+2*a)}`) +
     trow("T11", "Funding: " + fundTxt) +
-    (t13txt ? trow("T13", t13txt) : "");
+    (t13txt ? trow("T13", t13txt) : "") +
+    trow("T14", t14txt);
 
   document.getElementById("status").textContent = "Son yeniləmə: " + new Date().toLocaleString("az-AZ",{timeZone:"Asia/Baku"});
   try{
