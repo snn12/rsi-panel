@@ -84,6 +84,11 @@
 </div>
 
 <div class="card">
+  <h3>SSL TREND (T20)</h3>
+  <div id="sslc"></div>
+</div>
+
+<div class="card">
   <h3>GÖSTƏRİCİLƏR (4H)</h3>
   <div id="inds"></div>
 </div>
@@ -216,6 +221,60 @@ function dailySweep(kd){
   if(d.h>p.h&&d.c<p.h)return{dir:-1,txt:"Dünən zirvə süpürüldü (bearish setup)"};
   if(d.l<p.l&&d.c>p.l)return{dir:1,txt:"Dünən dib süpürüldü (bullish setup)"};
   return null;
+}
+function sslStates(h,l,c,len=10){
+  const k=2/(len+1);
+  let eh=0,el=0; const st=[]; let cur=0;
+  for(let i=0;i<c.length;i++){
+    if(i<len){ eh+=h[i]/len; el+=l[i]/len; }
+    else { eh=h[i]*k+eh*(1-k); el=l[i]*k+el*(1-k); }
+    if(i>=len-1){
+      if(c[i]>eh) cur=1; else if(c[i]<el) cur=-1;
+      st[i]=cur;
+    } else st[i]=0;
+  }
+  return{st,eh,el};
+}
+function adxLast(h,l,c,p=14){
+  if(c.length<2*p+5) return null;
+  const TR=[],PP=[],MM=[];
+  for(let i=1;i<c.length;i++){
+    TR.push(Math.max(h[i]-l[i],Math.abs(h[i]-c[i-1]),Math.abs(l[i]-c[i-1])));
+    const up=h[i]-h[i-1],dn=l[i-1]-l[i];
+    PP.push(up>dn&&up>0?up:0); MM.push(dn>up&&dn>0?dn:0);
+  }
+  const sm=a=>{let e=a.slice(0,p).reduce((x,y)=>x+y,0)/p;const o=[e];for(let i=p;i<a.length;i++){e=(e*(p-1)+a[i])/p;o.push(e);}return o;};
+  const sTR=sm(TR),sPP=sm(PP),sMM=sm(MM);
+  const m=sTR.length;
+  const dx=[];for(let i=0;i<m;i++){const s=sPP[i]+sMM[i];dx.push(s===0?0:100*Math.abs(sPP[i]-sMM[i])/s);}
+  const sDX=sm(dx.length>=p?dx:dx);
+  return{adx:sDX[sDX.length-1],pdi:100*sPP[m-1]/sTR[m-1],mdi:100*sMM[m-1]/sTR[m-1]};
+}
+function sslGrade(s){ return s>=85?"A+":s>=70?"A":s>=55?"B":s>=40?"C":"D"; }
+function sslScore(kl,htf=0){
+  const cl = kl.slice(0,-1);
+  if(cl.length<40) return null;
+  const h=cl.map(x=>x.h),l=cl.map(x=>x.l),c=cl.map(x=>x.c);
+  const ssts = sslStates(h,l,c,10);
+  const st = ssts.st, n = st.length-1;
+  const dir = st[n];
+  if(dir===0) return{dir:0,score:0,fresh:false,r:null,adx:null};
+  let flipAgo=20;
+  for(let i=n;i>=Math.max(0,n-20);i--){ if(st[i]!==dir){flipAgo=n-i-1;break;} }
+  const fresh = flipAgo<=5;
+  const r=rsi(c,14);
+  const ax=adxLast(h,l,c,14);
+  const av=atr(h,l,c,14);
+  const width=Math.abs(ssts.eh-ssts.el);
+  let s = fresh?25:10;
+  s += dir===1 ? (r>60?20:r>=55?12:5) : (r<40?20:r<=45?12:5);
+  if(ax){
+    if(ax.adx>25&&((dir===1&&ax.pdi>ax.mdi)||(dir===-1&&ax.mdi>ax.pdi))) s+=20;
+    else if(ax.adx>=20) s+=10;
+  }
+  s += width>av?15:5;
+  if(htf!==0 && htf===dir) s+=20;
+  return{dir,score:Math.min(100,Math.round(s)),fresh,r,adx:ax?Math.round(ax.adx):null};
 }
 function t14signal(kl){
   const closed = kl.slice(0,-1);
@@ -355,6 +414,12 @@ async function main(){
   const t14txt = tg.state==="YOXL" ? "Siqnal yoxdur (sakit rejim — filtr süzür)" : `${tg.state} @ ${fmt(tg.entry)} • TP1 ${fmt(tg.tp1)} • TP2 ${fmt(tg.tp2)} • SL ${fmt(tg.sl)}`;
 
   const row = (k,val,cls) => `<div class="krow"><span>${k}</span><span class="${cls||""}">${val}</span></div>`;
+  const s4 = sslScore(h4, 0);
+  const s1 = sslScore(h1, s4 ? s4.dir : 0);
+  const sslName = d => !d ? "—" : d.dir===1 ? `Bullish ${d.score} (${sslGrade(d.score)})` : d.dir===-1 ? `Bearish ${d.score} (${sslGrade(d.score)})` : "Neytral";
+  document.getElementById("sslc").innerHTML =
+    `<div class="krow"><span>1H SSL</span><span>${sslName(s1)}</span></div>` +
+    `<div class="krow"><span>4H SSL</span><span>${sslName(s4)}</span></div>`;
   const rc = x => x==null ? "flat" : x>=70 ? "down" : x<=30 ? "up" : "flat";
   document.getElementById("inds").innerHTML =
     row("RSI 1H", r1==null?"—":r1.toFixed(1), rc(r1)) +
@@ -418,7 +483,8 @@ async function main(){
     trow("T15", t15txt) +
     trow("T16", t16txt) +
     trow("T17", smtTxt) +
-    trow("T19", dsw ? dsw.txt + " → 1 XAL" : "Dünən sweep yoxdur");
+    trow("T19", dsw ? dsw.txt + " → 1 XAL" : "Dünən sweep yoxdur") +
+    trow("T20", (s1 && s1.dir!==0 && s1.fresh && s4 && s4.dir===s1.dir && s1.score>=55) ? `${s1.dir===1?"SSL BUY":"SSL SELL"} • Skor ${s1.score} (${sslGrade(s1.score)}) → 1 XAL` : "SSL siqnal yoxdur");
 
   document.getElementById("status").textContent = "Son yeniləmə: " + new Date().toLocaleString("az-AZ",{timeZone:"Asia/Baku"});
   try{

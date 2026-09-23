@@ -125,3 +125,10 @@
 ## T19 — Daily sweep (CANLIDIR)
 - Qayda: dünənki şam əvvəlki günün high/low-nu fitillə deşir + içəridə bağlanır = setup. Stop gündəlik ekstremdən kənarda, TP əks hovuz / 2R+.
 - Status: coin.html-də sətir + skor.html-də 1 xal.
+
+## T20 — SSL trend + keyfiyyət skoru (CANLIDIR)
+- Mənbə: SSL Channel Pro təsviri (TradingFinder) — kod yox, məntiq açıqdır.
+- Baza: SSL-10 (high-EMA + low-EMA); bağlanış kanaldan yuxarıda = bullish, aşağıda = bearish.
+- Təsdiq qatları: təzə flip (25) + RSI zonası (20) + ADX>25 və DI uyğunluğu (20) + kanal genişliyi>ATR (15) + HTF razılığı (20) = 0-100 skor; qrade A+ (85+) / A (70+) / B (55+) / C (40+) / D.
+- Siqnal: təzə flip + HTF razı + skor ≥ 55 = SSL BUY/SELL.
+- Status: coin.html-də SSL kartı + skor.html-də 1 xal (4H skor ≥ 55).

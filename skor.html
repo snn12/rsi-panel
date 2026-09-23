@@ -74,7 +74,7 @@
 <div id="list"></div>
 
 <div class="foot">
-  Xal: T1 ekstrem • T2 zona • T4 trend • T6 momentum • T7 band • T11 funding • T12 həcm • T13 XAU • T14 ALQO • T15 FVG • T16 sweep • T17 SMT • T19 daily.<br>
+  Xal: T1 ekstrem • T2 zona • T4 trend • T6 momentum • T7 band • T11 funding • T12 həcm • T13 XAU • T14 ALQO • T15 FVG • T16 sweep • T17 SMT • T19 daily • T20 SSL.<br>
   Data: Bybit public API. Tövsiyə deyil.
 </div>
 
@@ -149,6 +149,60 @@ function findSweepClosed(kl){
   if(last.h>hi && last.c<hi) return {side:-1, level:hi};
   if(last.l<lo && last.c>lo) return {side:1, level:lo};
   return null;
+}
+function sslStates(h,l,c,len=10){
+  const k=2/(len+1);
+  let eh=0,el=0; const st=[]; let cur=0;
+  for(let i=0;i<c.length;i++){
+    if(i<len){ eh+=h[i]/len; el+=l[i]/len; }
+    else { eh=h[i]*k+eh*(1-k); el=l[i]*k+el*(1-k); }
+    if(i>=len-1){
+      if(c[i]>eh) cur=1; else if(c[i]<el) cur=-1;
+      st[i]=cur;
+    } else st[i]=0;
+  }
+  return{st,eh,el};
+}
+function adxLast(h,l,c,p=14){
+  if(c.length<2*p+5) return null;
+  const TR=[],PP=[],MM=[];
+  for(let i=1;i<c.length;i++){
+    TR.push(Math.max(h[i]-l[i],Math.abs(h[i]-c[i-1]),Math.abs(l[i]-c[i-1])));
+    const up=h[i]-h[i-1],dn=l[i-1]-l[i];
+    PP.push(up>dn&&up>0?up:0); MM.push(dn>up&&dn>0?dn:0);
+  }
+  const sm=a=>{let e=a.slice(0,p).reduce((x,y)=>x+y,0)/p;const o=[e];for(let i=p;i<a.length;i++){e=(e*(p-1)+a[i])/p;o.push(e);}return o;};
+  const sTR=sm(TR),sPP=sm(PP),sMM=sm(MM);
+  const m=sTR.length;
+  const dx=[];for(let i=0;i<m;i++){const s=sPP[i]+sMM[i];dx.push(s===0?0:100*Math.abs(sPP[i]-sMM[i])/s);}
+  const sDX=sm(dx.length>=p?dx:dx);
+  return{adx:sDX[sDX.length-1],pdi:100*sPP[m-1]/sTR[m-1],mdi:100*sMM[m-1]/sTR[m-1]};
+}
+function sslGrade(s){ return s>=85?"A+":s>=70?"A":s>=55?"B":s>=40?"C":"D"; }
+function sslScore(kl,htf=0){
+  const cl = kl.slice(0,-1);
+  if(cl.length<40) return null;
+  const h=cl.map(x=>x.h),l=cl.map(x=>x.l),c=cl.map(x=>x.c);
+  const ssts = sslStates(h,l,c,10);
+  const st = ssts.st, n = st.length-1;
+  const dir = st[n];
+  if(dir===0) return{dir:0,score:0,fresh:false};
+  let flipAgo=20;
+  for(let i=n;i>=Math.max(0,n-20);i--){ if(st[i]!==dir){flipAgo=n-i-1;break;} }
+  const fresh = flipAgo<=5;
+  const r=rsi(c,14);
+  const ax=adxLast(h,l,c,14);
+  const av=atr(h,l,c,14);
+  const width=Math.abs(ssts.eh-ssts.el);
+  let s = fresh?25:10;
+  s += dir===1 ? (r>60?20:r>=55?12:5) : (r<40?20:r<=45?12:5);
+  if(ax){
+    if(ax.adx>25&&((dir===1&&ax.pdi>ax.mdi)||(dir===-1&&ax.mdi>ax.pdi))) s+=20;
+    else if(ax.adx>=20) s+=10;
+  }
+  s += width>av?15:5;
+  if(htf!==0 && htf===dir) s+=20;
+  return{dir,score:Math.min(100,Math.round(s)),fresh};
 }
 function pivHL(kl,k=3){
   const H=[],L=[];
@@ -283,8 +337,10 @@ async function scoreSym(sym){
   if((sym==="BTCUSDT"||sym==="ETHUSDT") && SMT) hits.push("T17 SMT " + (SMT.dir===1?"bullish":"bearish"));
   const dsw = dailySweep(kd);
   if(dsw) hits.push("T19 daily-sweep");
+  const s4x = sslScore(k4, 0);
+  if(s4x && s4x.dir!==0 && s4x.score>=55) hits.push("T20 SSL " + (s4x.dir===1?"bull":"bear") + " " + s4x.score);
   const t17x = (sym==="BTCUSDT"||sym==="ETHUSDT") ? 1 : 0;
-  return {sym, price, score: hits.length, max: 11+t17x+(isXau?1:0), hits};
+  return {sym, price, score: hits.length, max: 12+t17x+(isXau?1:0), hits};
 }
 function render(items){
   const el = document.getElementById("list"); el.innerHTML="";
