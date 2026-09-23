@@ -74,7 +74,7 @@
 <div id="list"></div>
 
 <div class="foot">
-  Xal: T1 ekstrem • T2 zona • T4 trend • T6 momentum • T7 band • T11 funding • T12 həcm • T13 XAU • T14 ALQO • T15 FVG • T16 sweep • T17 SMT • T19 daily • T20 SSL • T21 kernel.<br>
+  Xal: T1 ekstrem • T2 zona • T4 trend • T6 momentum • T7 band • T11 funding • T12 həcm • T13 XAU • T14 ALQO • T15 FVG • T16 sweep • T17 SMT • T19 daily • T20 SSL • T21 kernel • T22 UMA • T23 OTE • T24 OB.<br>
   Data: Bybit public API. Tövsiyə deyil.
 </div>
 
@@ -260,6 +260,75 @@ function kernelTrend(kl,fastL=8,slowL=21,width=1,strength=2){
   }
   return{state:st,flip};
 }
+function emaSeries(src,p){
+  const k=2/(p+1); const out=new Array(src.length).fill(null);
+  let e=src.slice(0,p).reduce((a,b)=>a+b,0)/p; out[p-1]=e;
+  for(let i=p;i<src.length;i++){e=src[i]*k+e*(1-k);out[i]=e;}
+  return out;
+}
+function umaState(kl){
+  const c=kl.map(x=>x.c),h=kl.map(x=>x.h),l=kl.map(x=>x.l);
+  const ps=[8,21,55,144,233];
+  const blend=a=>{const arrs=ps.map(p=>emaSeries(a,p));const n=a.length,o=new Array(n).fill(null);
+    for(let i=0;i<n;i++){let s=0,ok=true;for(const x of arrs){if(x[i]==null){ok=false;break;}s+=x[i];}if(ok)o[i]=s/5;}return o;};
+  const uh=blend(h),ul=blend(l),uc=blend(c);
+  const n=c.length-1;
+  if(uh[n]==null||ul[n]==null||uc[n]==null||uc[n-1]==null) return null;
+  const bias=c[n]>uh[n]?1:c[n]<ul[n]?-1:0;
+  const mom=uc[n]>uc[n-1]?1:uc[n]<uc[n-1]?-1:0;
+  return{bias,mom,power:(bias===1&&mom===1)||(bias===-1&&mom===-1)};
+}
+function oteZone(kl,a){
+  const P=pivHL(kl,5), c=kl.map(x=>x.c);
+  const cand=[];
+  P.L.slice(-3).forEach(L0=>{
+    let hh=-1e18,hi=-1;
+    for(let i=L0.i+1;i<kl.length;i++){ if(kl[i].h>hh){hh=kl[i].h;hi=i;} }
+    if(hi<0||(hh-L0.p)<1.5*a) return;
+    let bos=false; for(let i=hi;i<kl.length;i++){ if(kl[i].c>hh){bos=true;break;} }
+    if(!bos) return;
+    cand.push({dir:1,lo:L0.p,hi:hh});
+  });
+  P.H.slice(-3).forEach(H0=>{
+    let ll=1e18,li=-1;
+    for(let i=H0.i+1;i<kl.length;i++){ if(kl[i].l<ll){ll=kl[i].l;li=i;} }
+    if(li<0||(H0.p-ll)<1.5*a) return;
+    let bos=false; for(let i=li;i<kl.length;i++){ if(kl[i].c<ll){bos=true;break;} }
+    if(!bos) return;
+    cand.push({dir:-1,lo:ll,hi:H0.p});
+  });
+  const z=cand[cand.length-1];
+  if(!z) return null;
+  const last=c[c.length-1];
+  const lv=[0.618,0.705,0.79].map(f=> z.dir===1 ? z.hi-(z.hi-z.lo)*f : z.lo+(z.hi-z.lo)*f);
+  const pTop=Math.max(lv[0],lv[2]), pBot=Math.min(lv[0],lv[2]);
+  return{inside:last<=pTop&&last>=pBot};
+}
+function orderBlocks(kl,a){
+  const n=kl.length;
+  const out={bull:null,bear:null};
+  for(let i=n-2;i>=Math.max(1,n-60);i--){
+    const k=kl[i], body=Math.abs(k.c-k.o), rng=k.h-k.l||1e-9;
+    const bullDisp=k.c>k.o&&body>1.5*a&&(k.c-k.l)/rng>0.75;
+    const bearDisp=k.c<k.o&&body>1.5*a&&(k.h-k.c)/rng>0.75;
+    if(bullDisp&&!out.bull){
+      for(let j=i-1;j>=Math.max(0,i-3);j--){ const q=kl[j];
+        if(q.c<q.o){ const t=Math.max(q.o,q.c),b=Math.min(q.o,q.c);
+          let brk=false; for(let m=j+1;m<n;m++){ if(kl[m].c<b){brk=true;break;} }
+          if(!brk) out.bull={top:t,bot:b};
+          break; } }
+    }
+    if(bearDisp&&!out.bear){
+      for(let j=i-1;j>=Math.max(0,i-3);j--){ const q=kl[j];
+        if(q.c>q.o){ const t=Math.max(q.o,q.c),b=Math.min(q.o,q.c);
+          let brk=false; for(let m=j+1;m<n;m++){ if(kl[m].c>t){brk=true;break;} }
+          if(!brk) out.bear={top:t,bot:b};
+          break; } }
+    }
+    if(out.bull&&out.bear) break;
+  }
+  return out;
+}
 function pivHL(kl,k=3){
   const H=[],L=[];
   for(let i=k;i<kl.length-k;i++){
@@ -295,7 +364,7 @@ async function fetchFull(sym, interval, limit=50){
     try{
       const r = await fetch(u); const j = await r.json();
       if(j.retCode===0 && j.result && j.result.list && j.result.list.length>25){
-        return [...j.result.list].reverse().map(x=>({h:Number(x[2]), l:Number(x[3]), c:Number(x[4]), v:Number(x[5])}));
+        return [...j.result.list].reverse().map(x=>({o:Number(x[1]), h:Number(x[2]), l:Number(x[3]), c:Number(x[4]), v:Number(x[5])}));
       }
     }catch(e){}
   }
@@ -338,7 +407,7 @@ function xtreme(x){
   return null;
 }
 async function scoreSym(sym){
-  const [k1, k4] = await Promise.all([fetchFull(sym,"60"), fetchFull(sym,"240")]);
+  const [k1, k4] = await Promise.all([fetchFull(sym,"60"), fetchFull(sym,"240",300)]);
   const funding = await fetchFunding(sym);
   const kd = await fetchFull(sym,"D",30);
   if(!k1 || !k4) return null;
@@ -397,8 +466,16 @@ async function scoreSym(sym){
   if(s4x && s4x.dir!==0 && s4x.score>=55) hits.push("T20 SSL " + (s4x.dir===1?"bull":"bear") + " " + s4x.score);
   const kf4 = kernelTrend(k4.slice(0,-1));
   if(kf4 && kf4.flip<=5 && kf4.state!==0) hits.push("T21 kernel " + (kf4.state===1?"BUY":"SELL"));
+  const uma = umaState(k4);
+  if(uma && uma.power) hits.push("T22 UMA " + (uma.bias===1?"bull":"bear"));
+  const a4b = atr(h4,l4,c4,14);
+  const ote = oteZone(k4, a4b);
+  if(ote && ote.inside) hits.push("T23 OTE");
+  const obs = orderBlocks(k4, a4b);
+  if((obs.bull && price<=obs.bull.top+0.5*a4b && price>=obs.bull.bot-0.5*a4b) ||
+     (obs.bear && price>=obs.bear.bot-0.5*a4b && price<=obs.bear.top+0.5*a4b)) hits.push("T24 OB");
   const t17x = (sym==="BTCUSDT"||sym==="ETHUSDT") ? 1 : 0;
-  return {sym, price, score: hits.length, max: 13+t17x+(isXau?1:0), hits};
+  return {sym, price, score: hits.length, max: 16+t17x+(isXau?1:0), hits};
 }
 function render(items){
   const el = document.getElementById("list"); el.innerHTML="";

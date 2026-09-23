@@ -138,3 +138,18 @@
 - Parametr: Fast 8 / Slow 21, width 1.0, strength 2.0, ATR-14.
 - Qayda: Fast > Slow = bullish. Təzə flip (≤5 bağlı şam) + 4H razılığı = KERNEL BUY/SELL.
 - Status: coin.html-də Kernel kartı + skor.html-də 1 xal.
+
+## T22 — UMA momentum, Ultimate-oscillator stili (CANLIDIR)
+- Mənbə: Ultimate Momentum Oscillator təsviri — 5 EMA-nın blendi (8/21/55/144/233), high/low-dan kanal, histogram = slope.
+- Qayda: bias (bağlanış kanala görə) + momentum (slope işarəsi) razıdırsa GÜCLÜ BULL/BEAR = 1 xal. Volatillik (kanal eni) ayrıca göstərilir.
+- Status: coin.html-də kart + skor.html-də 1 xal. 233+ şam lazımdır (4H 300 çəkilir).
+
+## T23 — OTE zonası (CANLIDIR)
+- Mənbə: OTE Zones təsviri — təsdiqli swing (pivot + BOS + ölçü ≥1.5x ATR), cib 0.618/0.705/0.79.
+- Qayda: qiymət cibin içindədirsə 1 xal. Yaxın tier məsafəsi göstərilir.
+- Status: coin.html-də kart + skor.html-də 1 xal.
+
+## T24 — Order Block retest (CANLIDIR)
+- Mənbə: ICT SMC Key Levels təsviri — displasiya şamından əvvəlki əks body = OB; pozulmamış qalırsa zona aktivdir.
+- Qayda: qiymət OB-də/retest məsafəsindədirsə (0.5x ATR) 1 xal.
+- Status: coin.html-də kart + skor.html-də 1 xal.
