@@ -6,44 +6,50 @@
 <title>RSI Panel</title>
 <style>
   * { box-sizing: border-box; }
-  body { margin: 0 auto; max-width: 640px; font-family: -apple-system, "Segoe UI", Arial, sans-serif; background: #ffffff; color: #1a2b23; padding: 16px 14px 28px; }
-  h1 { font-size: 20px; margin: 4px 0 2px; font-weight: 600; letter-spacing: .2px; display: flex; align-items: center; gap: 8px; }
-  .logo { width: 10px; height: 10px; border-radius: 3px; background: #0b8a7d; display: inline-block; }
-  .sub { color: #6b7f74; font-size: 13px; margin-bottom: 12px; }
-  .nav { display: flex; gap: 6px; margin: 10px 0; }
-  .nav a { flex: 1; text-align: center; padding: 10px 2px; background: #ffffff; border: 1px solid #e5ebe7; border-radius: 10px; color: #1a2b23; text-decoration: none; font-size: 13px; }
-  .nav a.on { background: #0b8a7d; border-color: #0b8a7d; color: #ffffff; font-weight: 600; }
-  .chips { display: flex; gap: 8px; margin: 2px 0 4px; }
-  .chip { flex: 1; padding: 8px; border-radius: 20px; border: 1px solid #e5ebe7; background: #ffffff; color: #1a2b23; font-size: 13px; }
-  .chip.on { background: #1a2b23; border-color: #1a2b23; color: #ffffff; font-weight: 600; }
-  .bar { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
-  input { flex: 1; min-width: 140px; padding: 10px 12px; border-radius: 10px; border: 1px solid #e5ebe7; background: #f5f8f6; color: #1a2b23; font-size: 15px; }
-  input:focus { outline: none; border-color: #0b8a7d; }
-  button.act { padding: 10px 14px; border-radius: 10px; border: 0; background: #0b8a7d; color: #ffffff; font-size: 14px; font-weight: 600; }
-  button.ghost { padding: 10px 14px; border-radius: 10px; background: #ffffff; border: 1px solid #e5ebe7; color: #1a2b23; font-size: 14px; }
+  body { margin: 0 auto; max-width: 640px; font-family: -apple-system, "Segoe UI", Arial, sans-serif; background: #EDF1F7; color: #0F1D38; padding: 12px 12px 28px; }
+  .brand { background: linear-gradient(135deg, #0E1B3D, #2B4ACB); border-radius: 16px; padding: 14px; color: #fff; margin-bottom: 10px; }
+  .brand-row { display: flex; align-items: center; gap: 10px; }
+  .logo2 { width: 14px; height: 14px; border-radius: 4px; background: #BEF264; flex-shrink: 0; }
+  .brand-t { font-size: 19px; font-weight: 700; }
+  .brand-s { font-size: 12px; opacity: .75; margin-top: 2px; }
+  .nav { display: flex; gap: 6px; margin: 10px 0; background: #fff; border: 1px solid #E2E8F0; border-radius: 14px; padding: 5px; }
+  .nav a { flex: 1; text-align: center; padding: 9px 2px; border-radius: 10px; color: #0F1D38; text-decoration: none; font-size: 12px; font-weight: 600; }
+  .nav a.on { background: #4F46E5; color: #fff; }
+  .chips { display: flex; gap: 6px; margin: 2px 0 8px; }
+  .chip { flex: 1; padding: 8px 2px; border-radius: 20px; border: 1px solid #E2E8F0; background: #fff; color: #0F1D38; font-size: 12px; font-weight: 600; }
+  .chip.on { background: #0F1D38; border-color: #0F1D38; color: #fff; }
+  .bar { display: flex; gap: 8px; margin: 8px 0 10px; }
+  input { flex: 1; min-width: 0; padding: 10px 12px; border-radius: 12px; border: 1px solid #E2E8F0; background: #fff; color: #0F1D38; font-size: 15px; }
+  input:focus { outline: none; border-color: #4F46E5; }
+  button.act { padding: 10px 14px; border-radius: 12px; border: 0; background: #4F46E5; color: #fff; font-size: 14px; font-weight: 700; white-space: nowrap; }
+  button.ghost { padding: 10px 14px; border-radius: 12px; background: #fff; border: 1px solid #E2E8F0; color: #0F1D38; font-size: 14px; font-weight: 600; white-space: nowrap; }
   button:active { opacity: .7; }
-  .card { background: #ffffff; border: 1px solid #e5ebe7; border-radius: 12px; padding: 12px; margin-bottom: 8px; }
-  .row1 { display: flex; justify-content: space-between; align-items: center; }
-  .sym { font-weight: 600; font-size: 16px; }
+  #status { display: inline-block; font-size: 12px; color: #64748B; margin: 2px 0 8px; background: #fff; border: 1px solid #E2E8F0; border-radius: 20px; padding: 6px 12px; }
+  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #4F46E5; margin-right: 6px; }
+  .row { display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid #E2E8F0; border-radius: 14px; padding: 10px 8px 10px 12px; margin-bottom: 8px; box-shadow: 0 1px 4px rgba(15,29,56,.06); }
+  .rid { flex: 1; min-width: 0; font-weight: 700; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   a.slink { color: inherit; text-decoration: none; }
-  a.slink:active { color: #0b8a7d; }
-  .price { font-size: 14px; color: #0b8a7d; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .del { background: transparent; border: 0; color: #e03131; font-size: 18px; padding: 4px 8px; opacity: .6; }
-  .grid { display: flex; gap: 8px; margin-top: 10px; }
-  .tf { flex: 1; background: #f5f8f6; border-radius: 8px; padding: 8px; text-align: center; }
-  .tf small { color: #6b7f74; display: block; margin-bottom: 3px; font-size: 12px; }
-  .tf b { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .ob { color: #e03131; } .hot { color: #e8890c; } .ok { color: #6b7f74; } .cheap { color: #0b8a7d; } .os { color: #2f9e44; }
-  .mtag { font-size: 10px; font-weight: 600; color: #0b8a7d; border: 1px solid #0b8a7d; border-radius: 10px; padding: 1px 7px; vertical-align: 2px; margin-left: 4px; }
-  .empty { background: #ffffff; border: 1px solid #e5ebe7; border-radius: 12px; padding: 22px; text-align: center; color: #6b7f74; }
-  .foot { color: #6b7f74; font-size: 12px; margin-top: 14px; line-height: 1.6; border-top: 1px solid #e5ebe7; padding-top: 10px; }
-  #status { display: inline-block; font-size: 13px; color: #6b7f74; margin: 6px 0; background: #f5f8f6; border-radius: 20px; padding: 6px 12px; }
-  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #0b8a7d; margin-right: 6px; }
+  .mtag { font-size: 9px; font-weight: 700; color: #4F46E5; border: 1px solid #4F46E5; border-radius: 8px; padding: 1px 6px; vertical-align: 2px; margin-left: 4px; }
+  .rprice { font-size: 12px; color: #64748B; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+  .rtf { min-width: 62px; text-align: center; background: #F1F5F9; border-radius: 10px; padding: 5px 4px; }
+  .rtf small { font-size: 10px; color: #64748B; display: block; font-weight: 600; }
+  .rtf b { font-size: 16px; font-variant-numeric: tabular-nums; }
+  .rdel { background: transparent; border: 0; color: #CBD5E1; font-size: 18px; padding: 2px 6px; }
+  .ob { color: #DC2626; } .hot { color: #EA8600; } .ok { color: #94A3B8; } .cheap { color: #4F46E5; } .os { color: #16A34A; }
+  .empty { background: #fff; border: 1px solid #E2E8F0; border-radius: 14px; padding: 22px; text-align: center; color: #64748B; }
+  .foot { color: #64748B; font-size: 12px; margin-top: 14px; line-height: 1.6; text-align: center; }
 </style>
 </head>
 <body>
-<h1><span class="logo"></span>RSI Panel</h1>
-<div class="sub">Bybit canlı data • RSI-14 • 1H / 4H</div>
+<div class="brand">
+  <div class="brand-row">
+    <span class="logo2"></span>
+    <div>
+      <div class="brand-t">RSI Panel</div>
+      <div class="brand-s">Bybit canlı • RSI-14 • 1H / 4H</div>
+    </div>
+  </div>
+</div>
 <div class="nav">
   <a href="index.html" class="on">Home</a>
   <a href="signals.html">Siqnallar</a>
@@ -67,11 +73,7 @@
 
 <div id="list"></div>
 
-<div class="foot">
-  Coin-in üstünə bas — detal analiz açılır.<br>
-  Qırmızı ≥70 overbought, Yaşıl ≤30 oversold.<br>
-  Data: Bybit public API. Tövsiyə deyil.
-</div>
+<div class="foot">Coin-in üstünə bas — detal açılır • Tövsiyə deyil</div>
 
 <script>
 const VER = "v3";
@@ -80,7 +82,6 @@ const TFS = {"1H":"60","4H":"240"};
 const CHUNK = 15;
 const MARKETS = {stock:["AAPLUSDT","NVDAUSDT","TSLAUSDT","METAUSDT","MSTRUSDT","INTCUSDT","MUUSDT","SNDKUSDT","SKHYNIXUSDT","SAMSUNGUSDT","SOXLUSDT","SOXSUSDT"], com:["XAUUSDT","XAGUSDT","XAUTUSDT"]};
 function marketOf(s){ if(MARKETS.stock.includes(s)) return "stock"; if(MARKETS.com.includes(s)) return "com"; return "crypto"; }
-function marketName(m){ return m==="stock" ? "STOCK" : m==="com" ? "ƏMTƏƏ" : "CRYPTO"; }
 let curMkt = "all";
 try{ curMkt = localStorage.getItem("rsi_mkt") || "all"; }catch(e){}
 let symbols = [];
@@ -145,18 +146,15 @@ function render(items){
   const shown = items.filter(o => curMkt==="all" || marketOf(o.sym)===curMkt);
   if(!shown.length){ el.innerHTML = `<div class="empty">Bu marketdə coin yoxdur.</div>`; return; }
   shown.forEach(o=>{
-    const d=document.createElement("div"); d.className="card";
+    const d=document.createElement("div"); d.className="row";
     const r1=o.r["1H"], r4=o.r["4H"];
     const m = marketOf(o.sym);
-    const tag = m==="crypto" ? "" : `<span class="mtag">${marketName(m)}</span>`;
+    const tag = m==="crypto" ? "" : `<span class="mtag">${m==="stock"?"STOCK":"ƏMTƏƏ"}</span>`;
     d.innerHTML =
-      `<div class="row1"><span class="sym"><a class="slink" href="coin.html?symbol=${o.sym}">${o.sym}</a>${tag}</span>`+
-      `<span class="price">${o.price!=null?fmt(o.price):"-"}</span>`+
-      `<button class="del" onclick="delSym('${o.sym}')">×</button></div>`+
-      `<div class="grid">`+
-      `<div class="tf"><small>1H</small><b class="${cls(r1)}">${r1!=null?r1.toFixed(1):"-"}</b></div>`+
-      `<div class="tf"><small>4H</small><b class="${cls(r4)}">${r4!=null?r4.toFixed(1):"-"}</b></div>`+
-      `</div>`;
+      `<div class="rid"><a class="slink" href="coin.html?symbol=${o.sym}">${o.sym}</a>${tag}<div class="rprice">${o.price!=null?fmt(o.price):"-"}</div></div>`+
+      `<div class="rtf"><small>1H</small><b class="${cls(r1)}">${r1!=null?r1.toFixed(0):"-"}</b></div>`+
+      `<div class="rtf"><small>4H</small><b class="${cls(r4)}">${r4!=null?r4.toFixed(0):"-"}</b></div>`+
+      `<button class="rdel" onclick="delSym('${o.sym}')">×</button>`;
     el.appendChild(d);
   });
 }

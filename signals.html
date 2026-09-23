@@ -6,39 +6,48 @@
 <title>Siqnallar 75+ / 20- • RSI Panel</title>
 <style>
   * { box-sizing: border-box; }
-  body { margin: 0 auto; max-width: 640px; font-family: -apple-system, "Segoe UI", Arial, sans-serif; background: #ffffff; color: #1a2b23; padding: 16px 14px 28px; }
-  h1 { font-size: 20px; margin: 4px 0 2px; font-weight: 600; letter-spacing: .2px; display: flex; align-items: center; gap: 8px; }
-  .logo { width: 10px; height: 10px; border-radius: 3px; background: #0b8a7d; display: inline-block; }
-  .sub { color: #6b7f74; font-size: 13px; margin-bottom: 12px; }
-  .nav { display: flex; gap: 6px; margin: 10px 0; }
-  .nav a { flex: 1; text-align: center; padding: 10px 2px; background: #ffffff; border: 1px solid #e5ebe7; border-radius: 10px; color: #1a2b23; text-decoration: none; font-size: 13px; }
-  .nav a.on { background: #0b8a7d; border-color: #0b8a7d; color: #ffffff; font-weight: 600; }
-  .card { background: #ffffff; border: 1px solid #e5ebe7; border-radius: 12px; padding: 12px; margin-bottom: 8px; }
-  .card.hot { border-color: #f3b7b7; }
-  .card.max { border-color: #e03131; border-width: 2px; }
-  .card.cold { border-color: #b7dbbf; }
-  .row1 { display: flex; justify-content: space-between; align-items: center; }
-  .sym { font-weight: 600; font-size: 16px; }
-  a.slink { color: inherit; text-decoration: none; }
-  a.slink:active { color: #0b8a7d; }
-  .price { font-size: 14px; color: #0b8a7d; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .badge { display: inline-block; margin-top: 8px; margin-right: 6px; padding: 5px 11px; border-radius: 20px; font-size: 13px; font-weight: 600; }
-  .badge.hot { background: #fff5f5; color: #e03131; border: 1px solid #f3b7b7; }
-  .badge.vhot { background: #ffa94d; color: #3a2200; border: 1px solid #ffa94d; }
-  .badge.max { background: #e03131; color: #ffffff; border: 1px solid #e03131; }
-  .badge.cold { background: #f0faf2; color: #2f9e44; border: 1px solid #b7dbbf; }
-  .mtag { font-size: 10px; font-weight: 600; color: #0b8a7d; border: 1px solid #0b8a7d; border-radius: 10px; padding: 1px 7px; vertical-align: 2px; margin-left: 4px; }
-  .empty { background: #ffffff; border: 1px solid #e5ebe7; border-radius: 12px; padding: 22px; text-align: center; color: #6b7f74; }
-  .foot { color: #6b7f74; font-size: 12px; margin-top: 14px; line-height: 1.6; border-top: 1px solid #e5ebe7; padding-top: 10px; }
-  #status { display: inline-block; font-size: 13px; color: #6b7f74; margin: 6px 0; background: #f5f8f6; border-radius: 20px; padding: 6px 12px; }
-  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #0b8a7d; margin-right: 6px; }
-  button.ghost { padding: 10px 14px; border-radius: 10px; background: #ffffff; border: 1px solid #e5ebe7; color: #1a2b23; font-size: 14px; width: 100%; margin-top: 4px; }
+  body { margin: 0 auto; max-width: 640px; font-family: -apple-system, "Segoe UI", Arial, sans-serif; background: #EDF1F7; color: #0F1D38; padding: 12px 12px 28px; }
+  .brand { background: linear-gradient(135deg, #0E1B3D, #2B4ACB); border-radius: 16px; padding: 14px; color: #fff; margin-bottom: 10px; }
+  .brand-row { display: flex; align-items: center; gap: 10px; }
+  .logo2 { width: 14px; height: 14px; border-radius: 4px; background: #BEF264; flex-shrink: 0; }
+  .brand-t { font-size: 19px; font-weight: 700; }
+  .brand-s { font-size: 12px; opacity: .75; margin-top: 2px; }
+  .nav { display: flex; gap: 6px; margin: 10px 0; background: #fff; border: 1px solid #E2E8F0; border-radius: 14px; padding: 5px; }
+  .nav a { flex: 1; text-align: center; padding: 9px 2px; border-radius: 10px; color: #0F1D38; text-decoration: none; font-size: 12px; font-weight: 600; }
+  .nav a.on { background: #4F46E5; color: #fff; }
+  #status { display: inline-block; font-size: 12px; color: #64748B; margin: 2px 0 8px; background: #fff; border: 1px solid #E2E8F0; border-radius: 20px; padding: 6px 12px; }
+  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #4F46E5; margin-right: 6px; }
+  button.ghost { padding: 10px 14px; border-radius: 12px; background: #fff; border: 1px solid #E2E8F0; color: #0F1D38; font-size: 14px; font-weight: 600; width: 100%; margin-top: 2px; }
   button:active { opacity: .7; }
+  .row { background: #fff; border: 1px solid #E2E8F0; border-radius: 14px; padding: 10px 12px; margin-bottom: 8px; margin-top: 8px; box-shadow: 0 1px 4px rgba(15,29,56,.06); }
+  .row.hot { border-left: 4px solid #DC2626; }
+  .row.max { border-left: 4px solid #DC2626; background: #FFF5F5; }
+  .row.cold { border-left: 4px solid #16A34A; }
+  .row1 { display: flex; justify-content: space-between; align-items: center; }
+  .sym { font-weight: 700; font-size: 15px; }
+  a.slink { color: inherit; text-decoration: none; }
+  .price { font-size: 13px; color: #0F1D38; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .mtag { font-size: 9px; font-weight: 700; color: #4F46E5; border: 1px solid #4F46E5; border-radius: 8px; padding: 1px 6px; vertical-align: 2px; margin-left: 4px; }
+  .tags { margin-top: 8px; }
+  .badge { display: inline-block; margin: 0 6px 6px 0; padding: 5px 11px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+  .badge.hot { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; }
+  .badge.vhot { background: #EA8600; color: #fff; border: 1px solid #EA8600; }
+  .badge.max { background: #DC2626; color: #fff; border: 1px solid #DC2626; }
+  .badge.cold { background: #F0FDF4; color: #16A34A; border: 1px solid #BBF7D0; }
+  .empty { background: #fff; border: 1px solid #E2E8F0; border-radius: 14px; padding: 22px; text-align: center; color: #64748B; margin-top: 8px; }
+  .foot { color: #64748B; font-size: 12px; margin-top: 14px; line-height: 1.6; text-align: center; }
 </style>
 </head>
 <body>
-<h1><span class="logo"></span>Siqnallar</h1>
-<div class="sub">≥75 qızmış • ≥81 çox qızmış • ≥87 EKSTREM • ≤20 soyulmuş • 1H / 4H</div>
+<div class="brand">
+  <div class="brand-row">
+    <span class="logo2"></span>
+    <div>
+      <div class="brand-t">Siqnallar</div>
+      <div class="brand-s">≥75 qızmış • ≥81 çox • ≥87 EKSTREM • ≤20 soyulmuş</div>
+    </div>
+  </div>
+</div>
 <div class="nav">
   <a href="index.html">Home</a>
   <a href="signals.html" class="on">Siqnallar</a>
@@ -48,13 +57,9 @@
 </div>
 <div id="status"><span class="dot"></span>Yüklənir...</div>
 <button class="ghost" onclick="refresh(true)">Yenilə</button>
-<div style="height:10px"></div>
 <div id="list"></div>
 
-<div class="foot">
-  Coin-in üstünə bas — detal analiz açılır.<br>
-  Data: Bybit public API. Tövsiyə deyil.
-</div>
+<div class="foot">Coin-in üstünə bas — detal açılır • Tövsiyə deyil</div>
 
 <script>
 const VER = "v3";
@@ -127,19 +132,19 @@ function render(items){
     const tags = Object.entries(o.r)
       .filter(([k,v]) => v!=null && (v>=HI || v<=LO))
       .map(([k,v]) => {
-        if(v < HI) return `<span class="badge cold">${k} ${v.toFixed(1)} • SOYULMUŞ</span>`;
+        if(v < HI) return `<span class="badge cold">${k} ${v.toFixed(0)} • SOYULMUŞ</span>`;
         const [c, t] = hotInfo(v);
-        return `<span class="badge ${c}">${k} ${v.toFixed(1)} • ${t}</span>`;
+        return `<span class="badge ${c}">${k} ${v.toFixed(0)} • ${t}</span>`;
       }).join("");
     const vals = Object.values(o.r).filter(v => v!=null);
     const hasMax = vals.some(v => v>=87);
     const isHot = vals.some(v => v>=HI);
     const d = document.createElement("div");
-    d.className = "card " + (hasMax ? "max" : isHot ? "hot" : "cold");
+    d.className = "row " + (hasMax ? "max" : isHot ? "hot" : "cold");
     const m = marketOf(o.sym);
     const tag = m==="crypto" ? "" : `<span class="mtag">${m==="stock"?"STOCK":"ƏMTƏƏ"}</span>`;
     d.innerHTML = `<div class="row1"><span class="sym"><a class="slink" href="coin.html?symbol=${o.sym}">${o.sym}</a>${tag}</span>`+
-      `<span class="price">${o.price!=null?fmt(o.price):"-"}</span></div><div>${tags}</div>`;
+      `<span class="price">${o.price!=null?fmt(o.price):"-"}</span></div><div class="tags">${tags}</div>`;
     el.appendChild(d);
   });
 }
