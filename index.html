@@ -13,6 +13,11 @@
   .nav { display: flex; gap: 8px; margin: 10px 0; }
   .nav a { flex: 1; text-align: center; padding: 10px; background: #ffffff; border: 1px solid #e5ebe7; border-radius: 10px; color: #1a2b23; text-decoration: none; font-size: 14px; }
   .nav a.on { background: #0b8a7d; border-color: #0b8a7d; color: #ffffff; font-weight: 600; }
+  .chips { display: flex; gap: 8px; margin: 2px 0 4px; }
+  .chip { flex: 1; padding: 8px; border-radius: 20px; border: 1px solid #e5ebe7; background: #ffffff; color: #1a2b23; font-size: 13px; }
+  .chip.on { background: #1a2b23; border-color: #1a2b23; color: #ffffff; font-weight: 600; }
+  .mtag { font-size: 10px; font-weight: 600; color: #0b8a7d; border: 1px solid #0b8a7d; border-radius: 10px; padding: 1px 7px; vertical-align: 2px; margin-left: 4px; }
+  .empty { background: #ffffff; border: 1px solid #e5ebe7; border-radius: 12px; padding: 22px; text-align: center; color: #6b7f74; }
   .bar { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
   input { flex: 1; min-width: 140px; padding: 10px 12px; border-radius: 10px; border: 1px solid #e5ebe7; background: #f5f8f6; color: #1a2b23; font-size: 15px; }
   input:focus { outline: none; border-color: #0b8a7d; }
@@ -41,6 +46,12 @@
   <a href="index.html" class="on">Home</a>
   <a href="signals.html">Siqnallar 75+ / 20-</a>
 </div>
+<div class="chips" id="chips">
+  <button class="chip on" data-m="all">Hamısı</button>
+  <button class="chip" data-m="crypto">Crypto</button>
+  <button class="chip" data-m="stock">Stocks</button>
+  <button class="chip" data-m="com">Əmtəə</button>
+</div>
 <div id="status"><span class="dot"></span>Yüklənir...</div>
 
 <div class="bar">
@@ -62,6 +73,11 @@ const VER = "v3";
 const DEFAULTS = ["BTCUSDT","ETHUSDT","SOLUSDT","BNBUSDT","XRPUSDT","DOGEUSDT","ADAUSDT","AVAXUSDT","LINKUSDT","SUIUSDT","ZECUSDT","1000PEPEUSDT","NEARUSDT","AAPLUSDT","HYPEUSDT","SOXLUSDT","ENAUSDT","XAUUSDT","TAOUSDT","AKEUSDT","CLUSDT","ARBUSDT","ONDOUSDT","SNDKUSDT","UNIUSDT","WLDUSDT","WIFUSDT","ZETAUSDT","FARTCOINUSDT","AAVEUSDT","PUMPFUNUSDT","LTCUSDT","MUBARAKUSDT","USELESSUSDT","XPLUSDT","PENGUUSDT","XAGUSDT","TRUMPUSDT","SPCXUSDT","XMRUSDT","XLMUSDT","MSTRUSDT","XAUTUSDT","HBARUSDT","VVVUSDT","BTWUSDT","APTUSDT","SKHYUSDT","CRCLUSDT","SKHYNIXUSDT","PONSUSDT","UAIUSDT","BCHUSDT","MUUSDT","INJUSDT","KORUUSDT","INTCUSDT","1000BONKUSDT","GRASSUSDT","SHIB1000USDT","SEIUSDT","ASTERUSDT","OPUSDT","LITUSDT","KERNELUSDT","DASHUSDT","SNXXUSDT","LSKUSDT","WLFIUSDT","MARSCOINUSDT","STRKUSDT","4STOCKUSDT","BZUSDT","VIRTUALUSDT","CRVUSDT","AEROUSDT","FILUSDT","ZAMAUSDT","SPXUSDT","DOTUSDT","CASHCATUSDT","FORMUSDT","ICPUSDT","NVDAUSDT","METAUSDT","SAMSUNGUSDT","BRUSDT","PHAUSDT","AIOZUSDT","SAGAUSDT","TIAUSDT","TRXUSDT","TSLAUSDT","MNTUSDT","JUPUSDT","DGAIUSDT","SOXSUSDT","ALGOUSDT","MONUSDT","FLOCKUSDT","PENDLEUSDT","JTOUSDT","GRAMUSDT","ETHFIUSDT","SKRUSDT","NILUSDT","DRAMUSDT","PTBUSDT","ATOMUSDT","COTIUSDT"];
 const TFS = {"1H":"60","4H":"240"};
 const CHUNK = 15;
+const MARKETS = {stock:["AAPLUSDT","NVDAUSDT","TSLAUSDT","METAUSDT","MSTRUSDT","INTCUSDT","MUUSDT","SNDKUSDT","SKHYNIXUSDT","SAMSUNGUSDT","SOXLUSDT","SOXSUSDT"], com:["XAUUSDT","XAGUSDT","XAUTUSDT"]};
+function marketOf(s){ if(MARKETS.stock.includes(s)) return "stock"; if(MARKETS.com.includes(s)) return "com"; return "crypto"; }
+function marketName(m){ return m==="stock" ? "STOCK" : m==="com" ? "ƏMTƏƏ" : "CRYPTO"; }
+let curMkt = "all";
+try{ curMkt = localStorage.getItem("rsi_mkt") || "all"; }catch(e){}
 let symbols = [];
 function save(){ try{ localStorage.setItem("rsi_symbols", JSON.stringify(symbols)); localStorage.setItem("rsi_ver", VER); }catch(e){} }
 try {
@@ -121,11 +137,15 @@ async function loadOne(sym){
 }
 function render(items){
   const el = document.getElementById("list"); el.innerHTML="";
-  items.forEach(o=>{
+  const shown = items.filter(o => curMkt==="all" || marketOf(o.sym)===curMkt);
+  if(!shown.length){ el.innerHTML = `<div class="empty">Bu marketdə coin yoxdur.</div>`; return; }
+  shown.forEach(o=>{
     const d=document.createElement("div"); d.className="card";
     const r1=o.r["1H"], r4=o.r["4H"];
+    const m = marketOf(o.sym);
+    const tag = m==="crypto" ? "" : `<span class="mtag">${marketName(m)}</span>`;
     d.innerHTML =
-      `<div class="row1"><span class="sym">${o.sym}</span>`+
+      `<div class="row1"><span class="sym">${o.sym}${tag}</span>`+
       `<span class="price">${o.price!=null?fmt(o.price):"-"}</span>`+
       `<button class="del" onclick="delSym('${o.sym}')">×</button></div>`+
       `<div class="grid">`+
@@ -168,6 +188,10 @@ function addSym(){
 }
 function delSym(s){ symbols=symbols.filter(x=>x!==s); save(); refresh(true); }
 document.getElementById("add").addEventListener("keydown",e=>{ if(e.key==="Enter") addSym(); });
+function syncChips(){ document.querySelectorAll("#chips .chip").forEach(b => b.classList.toggle("on", b.dataset.m===curMkt)); }
+function setMkt(m){ curMkt = m; try{ localStorage.setItem("rsi_mkt", m); }catch(e){} syncChips(); refresh(true); }
+document.querySelectorAll("#chips .chip").forEach(b => b.addEventListener("click", () => setMkt(b.dataset.m)));
+syncChips();
 refresh(false);
 </script>
 </body>

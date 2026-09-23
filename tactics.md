@@ -83,3 +83,9 @@
 - Sonda cəmi bal: məs. 12 taktikadan 7+ keçənlər "GÜCLÜ", 4-6 "ORTA".
 - Hər taktikanın market etiketi olur (PERP / SPOT / STOCK ...).
 - Taktikalar ASAN → ÇƏTİN sırası ilə əlavə olunur: T2, T6, T7, T9, T12 (asan) → T4, T10, T11 → T3, T8, T5 (çətin, çox data lazım).
+
+## Market bölmələri (saytda canlıdır)
+- CRYPTO PERP (110-dan ~95-i): T1 (75/81/87/20, 1H/4H), sonra T2, T4, T6, T7, T8, T9, T10, T11, T12.
+- STOCKS (12 simvol: AAPL, NVDA, TSLA, META, MSTR, INTC, MU, SNDK, SKHYNIX, SAMSUNG, SOXL, SOXS — hamısı Bybit linear, qiymətlə doğrulandı): T2, T5 (əsas), T6, T7. Ekstrem hədlər fərqli olacaq: 70/30 (təsdiqlənəcək, hazırda 75/20 göstərir).
+- ƏMTƏƏ (3 simvol: XAU qızıl, XAG gümüş, XAUT): T2, T4, T6 (trend). Qızıl trend marketidir — reversal taktikaları ehtiyatla.
+- Qayda: eyni taktika adı fərqli marketdə = ayrı parametr dəsti + ayrı market etiketi. Parametrsiz köçürmək olmaz.

@@ -25,6 +25,7 @@
   .badge.vhot { background: #ffa94d; color: #3a2200; border: 1px solid #ffa94d; }
   .badge.max { background: #e03131; color: #ffffff; border: 1px solid #e03131; }
   .badge.cold { background: #f0faf2; color: #2f9e44; border: 1px solid #b7dbbf; }
+  .mtag { font-size: 10px; font-weight: 600; color: #0b8a7d; border: 1px solid #0b8a7d; border-radius: 10px; padding: 1px 7px; vertical-align: 2px; margin-left: 4px; }
   .empty { background: #ffffff; border: 1px solid #e5ebe7; border-radius: 12px; padding: 22px; text-align: center; color: #6b7f74; }
   .foot { color: #6b7f74; font-size: 12px; margin-top: 14px; line-height: 1.6; border-top: 1px solid #e5ebe7; padding-top: 10px; }
   #status { display: inline-block; font-size: 13px; color: #6b7f74; margin: 6px 0; background: #f5f8f6; border-radius: 20px; padding: 6px 12px; }
@@ -56,6 +57,8 @@ const DEFAULTS = ["BTCUSDT","ETHUSDT","SOLUSDT","BNBUSDT","XRPUSDT","DOGEUSDT","
 const TFS = {"1H":"60","4H":"240"};
 const HI = 75, LO = 20;
 const CHUNK = 15;
+const MARKETS = {stock:["AAPLUSDT","NVDAUSDT","TSLAUSDT","METAUSDT","MSTRUSDT","INTCUSDT","MUUSDT","SNDKUSDT","SKHYNIXUSDT","SAMSUNGUSDT","SOXLUSDT","SOXSUSDT"], com:["XAUUSDT","XAGUSDT","XAUTUSDT"]};
+function marketOf(s){ if(MARKETS.stock.includes(s)) return "stock"; if(MARKETS.com.includes(s)) return "com"; return "crypto"; }
 let symbols = [];
 try {
   const saved = JSON.parse(localStorage.getItem("rsi_symbols"));
@@ -128,7 +131,9 @@ function render(items){
     const isHot = vals.some(v => v>=HI);
     const d = document.createElement("div");
     d.className = "card " + (hasMax ? "max" : isHot ? "hot" : "cold");
-    d.innerHTML = `<div class="row1"><span class="sym">${o.sym}</span>`+
+    const m = marketOf(o.sym);
+    const tag = m==="crypto" ? "" : `<span class="mtag">${m==="stock"?"STOCK":"ƏMTƏƏ"}</span>`;
+    d.innerHTML = `<div class="row1"><span class="sym">${o.sym}${tag}</span>`+
       `<span class="price">${o.price!=null?fmt(o.price):"-"}</span></div><div>${tags}</div>`;
     el.appendChild(d);
   });
