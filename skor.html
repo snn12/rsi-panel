@@ -101,7 +101,7 @@ async function fetchFull(sym, interval, limit=50){
     try{
       const r = await fetch(u); const j = await r.json();
       if(j.retCode===0 && j.result && j.result.list && j.result.list.length>25){
-        return [...j.result.list].reverse().map(x=>({c:Number(x[4]), v:Number(x[5])}));
+        return [...j.result.list].reverse().map(x=>({h:Number(x[2]), l:Number(x[3]), c:Number(x[4]), v:Number(x[5])}));
       }
     }catch(e){}
   }
@@ -128,6 +128,7 @@ async function scoreSym(sym){
   const funding = await fetchFunding(sym);
   if(!k1 || !k4) return null;
   const c1 = k1.map(x=>x.c), c4 = k4.map(x=>x.c), v4 = k4.map(x=>x.v);
+  const h4 = k4.map(x=>x.h), l4 = k4.map(x=>x.l);
   const price = c4[c4.length-1];
   const r1 = rsi(c1,14), r4 = rsi(c4,14);
   const e12 = emaArr(c4,12).pop(), e50 = emaArr(c4,50).pop();
@@ -155,7 +156,10 @@ async function scoreSym(sym){
   else if(funding!=null && funding<=-0.05) hits.push("T11 short sıx");
   if(spike && r4!=null && (r4>=70||r4<=30)) hits.push("T12 həcmli");
   const isXau = sym.indexOf("XAU")===0;
-  if(isXau && price>=4210 && r4!=null && r4>=50) hits.push("T13 XAU setup");
+  if(isXau && r4!=null){
+    const xSup = Math.min(...l4.slice(-50)), xRes = Math.max(...h4.slice(-50));
+    if(price>=xSup && r4>=50) hits.push("T13 XAU setup");
+  }
   return {sym, price, score: hits.length, max: isXau?8:7, hits};
 }
 function render(items){

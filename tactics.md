@@ -92,8 +92,8 @@
 
 ## T13 — XAU Bullish Reversal Setup (CUSTOM, CANLIDIR)
 - Market: YALNIZ XAU (XAUUSDT). Mənbə: istifadəçinin şəxsi setup-ı.
-- Dəstək zonası: 4210–4239. Hədəflər: 4435 (T1), 4520 (T2). Pozulma: 4210 decisiv qırılsa.
-- Saytda hesablanan qayda: qiymət >= 4210 (dəstək intact) + RSI-4H >= 50 (bullish struktur) = 1 XAL, əks halda 0. Trend xətti + bulud qırılması vizual təsdiq kimi qeyddədir (sayt hesablamır).
+- Struktur (göndərilən rəqəmlər nümunə idi — sayt dinamik hesablayır): dəstək = son 50 4H şamın dibi; hədəf T1 = son zirvə; T2 = zirvə + (zirvə-dəstək) ölçülmüş hərəkət. Pozulma: dəstək decisiv qırılsa.
+- Saytda hesablanan qayda: qiymət >= dinamik dəstək + RSI-4H >= 50 = 1 XAL, əks halda 0. Trend xətti + bulud qırılması vizual təsdiq kimi qeyddədir (sayt hesablamır).
 - Risk: 1-2% kapital, stop dəstək altında.
 - Status: coin.html-də T13 sətri + skor.html-də 1 xal + analysis/xauusdt.md.
 

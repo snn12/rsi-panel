@@ -229,11 +229,12 @@ async function main(){
   }
   let t13txt = "";
   if(SYM.indexOf("XAU")===0){
-    const hold = price>=4210, bull = r4!=null && r4>=50;
-    const t1p = (4435-price)/price*100, t2p = (4520-price)/price*100;
+    const hold = price>=sup, bull = r4!=null && r4>=50;
+    const tgt2 = res + (res - sup);
+    const t1p = (res-price)/price*100, t2p = (tgt2-price)/price*100;
     t13txt = hold
-      ? `Dəstək 4210-4239 üzərində • Hədəf 4435 (${t1p>=0?"+":""}${t1p.toFixed(1)}%) / 4520 (${t2p>=0?"+":""}${t2p.toFixed(1)}%) • ${bull ? "bullish struktur → 1 XAL" : "ehtiyatlı (RSI<50) → 0 xal"}`
-      : `Dəstək 4210 qırıldı — setup pozuldu → 0 xal`;
+      ? `Dəstək ${fmt(sup)} üzərində • Hədəf ${fmt(res)} (${t1p>=0?"+":""}${t1p.toFixed(1)}%) / ${fmt(tgt2)} (${t2p>=0?"+":""}${t2p.toFixed(1)}%) • ${bull ? "bullish struktur → 1 XAL" : "ehtiyatlı (RSI<50) → 0 xal"}`
+      : `Dəstək ${fmt(sup)} qırıldı — setup pozuldu → 0 xal`;
   }
   const trow = (id,txt) => `<div class="trow"><span class="tid">${id}</span><span>${txt}</span></div>`;
   document.getElementById("tacts").innerHTML =
