@@ -74,7 +74,7 @@
 <div id="list"></div>
 
 <div class="foot">
-  Xal: T1 ekstrem • T2 zona • T4 trend • T6 momentum • T7 band • T11 funding • T12 həcm • T13 XAU • T14 ALQO • T15 FVG • T16 sweep • T17 SMT • T19 daily • T20 SSL • T21 kernel • T22 UMA • T23 OTE • T24 OB.<br>
+  Xal: T1 ekstrem • T2 zona • T4 trend • T6 momentum • T7 band • T11 funding • T12 həcm • T13 XAU • T14 ALQO • T15 FVG • T16 sweep • T17 SMT • T19 daily • T20 SSL • T21 kernel • T22 UMA • T23 OTE • T24 OB • T25 MACD • T26 retest.<br>
   Data: Bybit public API. Tövsiyə deyil.
 </div>
 
@@ -329,6 +329,54 @@ function orderBlocks(kl,a){
   }
   return out;
 }
+function macdSeries(c){
+  const e12=emaSeries(c,12), e26=emaSeries(c,26);
+  const ml=[], sig=[];
+  for(let i=0;i<c.length;i++){ ml[i]=(e12[i]==null||e26[i]==null)?null:e12[i]-e26[i]; }
+  const vals=[]; const idx=[];
+  ml.forEach((v,i)=>{ if(v!=null){vals.push(v);idx.push(i);} });
+  const se=emaSeries(vals,9);
+  const sg=new Array(c.length).fill(null);
+  se.forEach((v,j)=>{ if(v!=null) sg[idx[j]]=v; });
+  const hist=ml.map((v,i)=> v==null||sg[i]==null?null:v-sg[i]);
+  return{ml,sig:sg,hist};
+}
+function t25signal(kl){
+  const cl=kl.slice(0,-1);
+  if(cl.length<210) return null;
+  const c=cl.map(x=>x.c);
+  const e200=emaSeries(c,200).pop();
+  const ms=macdSeries(c);
+  const n=c.length-1;
+  const h0=ms.hist[n],h1=ms.hist[n-1],m0=ms.ml[n];
+  const ax=adxLast(cl.map(x=>x.h),cl.map(x=>x.l),c,14);
+  const last=c[n];
+  if(h1!=null&&h0!=null&&h1<=0&&h0>0&&m0<0&&last>e200&&ax&&ax.adx>20) return{dir:1};
+  if(h1!=null&&h0!=null&&h1>=0&&h0<0&&m0>0&&last<e200&&ax&&ax.adx>20) return{dir:-1};
+  return{dir:0};
+}
+function normCdf(z){
+  const t=1/(1+0.2316419*Math.abs(z));
+  const d=0.3989423*Math.exp(-z*z/2);
+  const p=d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));
+  return z>0?1-p:p;
+}
+function lastBOS(kl,look=20){
+  const cl=kl.slice(0,-1); const n=cl.length-1;
+  if(n<look+2) return null;
+  const c=cl.map(x=>x.c);
+  const win=cl.slice(n-look,n);
+  const hh=Math.max(...win.map(x=>x.h));
+  if(c[n]>hh) return{dir:1,level:hh,dist:c[n]-hh};
+  const ll=Math.min(...win.map(x=>x.l));
+  if(c[n]<ll) return{dir:-1,level:ll,dist:ll-c[n]};
+  return null;
+}
+function retestOdds(dist,sigma,N=20){
+  if(!(sigma>0)) return null;
+  const z=dist/(sigma*Math.sqrt(N));
+  return Math.max(0,Math.min(1,2*(1-normCdf(z))));
+}
 function pivHL(kl,k=3){
   const H=[],L=[];
   for(let i=k;i<kl.length-k;i++){
@@ -474,8 +522,16 @@ async function scoreSym(sym){
   const obs = orderBlocks(k4, a4b);
   if((obs.bull && price<=obs.bull.top+0.5*a4b && price>=obs.bull.bot-0.5*a4b) ||
      (obs.bear && price>=obs.bear.bot-0.5*a4b && price<=obs.bear.top+0.5*a4b)) hits.push("T24 OB");
+  const t25 = t25signal(k4);
+  if(t25 && t25.dir!==0) hits.push("T25 MACD " + (t25.dir===1?"BUY":"SELL"));
+  const bos = lastBOS(k4, 20);
+  const c4l = c4.slice(-21,-1);
+  const m20x = avg(c4l);
+  const sg20 = Math.sqrt(avg(c4l.map(x=>(x-m20x)*(x-m20x))));
+  const rto = bos ? retestOdds(bos.dist, sg20, 20) : null;
+  if(rto!=null && rto>=0.7) hits.push("T26 retest " + Math.round(rto*100) + "%");
   const t17x = (sym==="BTCUSDT"||sym==="ETHUSDT") ? 1 : 0;
-  return {sym, price, score: hits.length, max: 16+t17x+(isXau?1:0), hits};
+  return {sym, price, score: hits.length, max: 18+t17x+(isXau?1:0), hits};
 }
 function render(items){
   const el = document.getElementById("list"); el.innerHTML="";

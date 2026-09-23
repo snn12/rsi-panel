@@ -153,3 +153,13 @@
 - Mənbə: ICT SMC Key Levels təsviri — displasiya şamından əvvəlki əks body = OB; pozulmamış qalırsa zona aktivdir.
 - Qayda: qiymət OB-də/retest məsafəsindədirsə (0.5x ATR) 1 xal.
 - Status: coin.html-də kart + skor.html-də 1 xal.
+
+## T25 — MACD Pullback Sniper (CANLIDIR)
+- Mənbə: MACD Pullback Sniper təsviri (açıq skript).
+- Qayda: MACD histogram sıfırı kəsir + kəsişmə sıfır xəttin altında (long) + qiymət 200EMA üstündə + ADX>20 = BUY (əksi SELL). SL 2x ATR, TP 2R.
+- Status: coin.html-də sətir + skor.html-də 1 xal. 210+ şam lazımdır.
+
+## T26 — Retest + likvidlik ehtimalı, SMC-ML stili (CANLIDIR)
+- Mənbə: Smart Money Concept ML təsviri — random-walk (reflection) retest ehtimalı + gambler's ruin hovuz odds.
+- Qayda: son BOS-dan sonra 20 şamda retest ehtimalı ≥70% = 1 xal. Yuxarı/aşağı hovuzdan hansı öncə — faizlə göstərilir.
+- Status: coin.html-də EHTİMAL kartı + skor.html-də 1 xal.

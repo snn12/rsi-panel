@@ -99,6 +99,11 @@
 </div>
 
 <div class="card">
+  <h3>EHTİMAL (T26)</h3>
+  <div id="prob"></div>
+</div>
+
+<div class="card">
   <h3>GÖSTƏRİCİLƏR (4H)</h3>
   <div id="inds"></div>
 </div>
@@ -424,6 +429,54 @@ function orderBlocks(kl,a){
   return out;
 }
 function nyActive(){ try{ const h=Number(new Date().toLocaleString("en-US",{timeZone:"America/New_York",hour:"numeric",hour12:false})); return h>=8&&h<17; }catch(e){ return false; } }
+function macdSeries(c){
+  const e12=emaSeries(c,12), e26=emaSeries(c,26);
+  const ml=[], sig=[];
+  for(let i=0;i<c.length;i++){ ml[i]=(e12[i]==null||e26[i]==null)?null:e12[i]-e26[i]; }
+  const vals=[]; const idx=[];
+  ml.forEach((v,i)=>{ if(v!=null){vals.push(v);idx.push(i);} });
+  const se=emaSeries(vals,9);
+  const sg=new Array(c.length).fill(null);
+  se.forEach((v,j)=>{ if(v!=null) sg[idx[j]]=v; });
+  const hist=ml.map((v,i)=> v==null||sg[i]==null?null:v-sg[i]);
+  return{ml,sig:sg,hist};
+}
+function t25signal(kl){
+  const cl=kl.slice(0,-1);
+  if(cl.length<210) return null;
+  const c=cl.map(x=>x.c);
+  const e200=emaSeries(c,200).pop();
+  const ms=macdSeries(c);
+  const n=c.length-1;
+  const h0=ms.hist[n],h1=ms.hist[n-1],m0=ms.ml[n];
+  const ax=adxLast(cl.map(x=>x.h),cl.map(x=>x.l),c,14);
+  const last=c[n];
+  if(h1!=null&&h0!=null&&h1<=0&&h0>0&&m0<0&&last>e200&&ax&&ax.adx>20) return{dir:1};
+  if(h1!=null&&h0!=null&&h1>=0&&h0<0&&m0>0&&last<e200&&ax&&ax.adx>20) return{dir:-1};
+  return{dir:0};
+}
+function normCdf(z){
+  const t=1/(1+0.2316419*Math.abs(z));
+  const d=0.3989423*Math.exp(-z*z/2);
+  const p=d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));
+  return z>0?1-p:p;
+}
+function lastBOS(kl,look=20){
+  const cl=kl.slice(0,-1); const n=cl.length-1;
+  if(n<look+2) return null;
+  const c=cl.map(x=>x.c);
+  const win=cl.slice(n-look,n);
+  const hh=Math.max(...win.map(x=>x.h));
+  if(c[n]>hh) return{dir:1,level:hh,dist:c[n]-hh};
+  const ll=Math.min(...win.map(x=>x.l));
+  if(c[n]<ll) return{dir:-1,level:ll,dist:ll-c[n]};
+  return null;
+}
+function retestOdds(dist,sigma,N=20){
+  if(!(sigma>0)) return null;
+  const z=dist/(sigma*Math.sqrt(N));
+  return Math.max(0,Math.min(1,2*(1-normCdf(z))));
+}
 function t14signal(kl){
   const closed = kl.slice(0,-1);
   if(closed.length<60) return {state:"YOXL"};
@@ -625,6 +678,18 @@ async function main(){
   const poolsHtml = above.map(x=>`<div class="krow"><span>Buy-side hovuz</span><span class="down">${fmt(x)} (+${((x-price)/price*100).toFixed(2)}%)</span></div>`).join("") +
     below.map(x=>`<div class="krow"><span>Sell-side hovuz</span><span class="up">${fmt(x)} (−${((price-x)/price*100).toFixed(2)}%)</span></div>`).join("");
   document.getElementById("pools").innerHTML = poolsHtml || `<div class="krow"><span>Hovuz</span><span class="flat">tapılmadı</span></div>`;
+  const t25 = t25signal(h4);
+  const bos = lastBOS(h4, 20);
+  const c4c = c4.slice(-21,-1);
+  const m20x = c4c.reduce((a,b)=>a+b,0)/c4c.length;
+  const sg20 = Math.sqrt(c4c.reduce((a,b)=>a+(b-m20x)*(b-m20x),0)/c4c.length);
+  const rto = bos ? retestOdds(bos.dist, sg20, 20) : null;
+  const pupRaw = (price-sup)/((res-sup)||1e-9);
+  const pup = Math.max(0,Math.min(1,pupRaw));
+  document.getElementById("prob").innerHTML =
+    `<div class="krow"><span>Son BOS (20 şam)</span><span>${bos?((bos.dir===1?"bullish ":"bearish ")+fmt(bos.level)):"yoxdur"}</span></div>` +
+    `<div class="krow"><span>Retest ehtimalı (20 şam)</span><span>${rto==null?"—":(rto*100).toFixed(0)+"%"}</span></div>` +
+    `<div class="krow"><span>Hovuz öncə: yuxarı / aşağı</span><span>${Math.round(pup*100)}% / ${Math.round((1-pup)*100)}%</span></div>`;
   const uma = umaState(h4);
   const ote = oteZone(h4, a);
   const obs = orderBlocks(h4, a);
@@ -656,7 +721,9 @@ async function main(){
     trow("T21", kSig===1 ? "KERNEL BUY (təzə flip + 4H razı) → 1 XAL" : kSig===-1 ? "KERNEL SELL (təzə flip + 4H razı) → 1 XAL" : "Kernel siqnal yoxdur") +
     trow("T22", uma && uma.power ? `UMA ${uma.state} (bias+momentum razı) → 1 XAL` : "UMA razılıq yoxdur") +
     trow("T23", ote && ote.inside ? `OTE içində (${ote.dir===1?"bullish":"bearish"} zona) → 1 XAL` : "OTE içində deyil") +
-    trow("T24", t24txt);
+    trow("T24", t24txt) +
+    trow("T25", t25 && t25.dir!==0 ? `MACD pullback ${t25.dir===1?"BUY":"SELL"} (200EMA+ADX filtrli) → 1 XAL` : "MACD setup yoxdur") +
+    trow("T26", rto!=null && rto>=0.7 ? `Retest ehtimalı ${(rto*100).toFixed(0)}% → 1 XAL` : "Yüksək ehtimallı retest yoxdur");
 
   document.getElementById("status").textContent = "Son yeniləmə: " + new Date().toLocaleString("az-AZ",{timeZone:"Asia/Baku"}) + (nyActive() ? " • NY sessiya" : " • sakit saat");
   try{
