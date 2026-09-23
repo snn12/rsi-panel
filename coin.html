@@ -43,6 +43,7 @@
   <a href="signals.html">Siqnallar</a>
   <a href="calendar.html">Təqvim</a>
   <a href="tactics.html">Taktikalar</a>
+  <a href="skor.html">Skor</a>
 </div>
 <h1><span class="logo"></span><span id="sym">...</span><span id="mtag"></span></h1>
 <div class="sub" id="status">Yüklənir...</div>
@@ -226,6 +227,14 @@ async function main(){
     fundTxt = (funding>=0?"+":"")+funding.toFixed(4)+" %/8s — " +
       (funding>=0.05 ? "kalabalık LONG, flush riski" : funding<=-0.05 ? "kalabalık SHORT, squeeze riski" : "neytral");
   }
+  let t13txt = "";
+  if(SYM.indexOf("XAU")===0){
+    const hold = price>=4210, bull = r4!=null && r4>=50;
+    const t1p = (4435-price)/price*100, t2p = (4520-price)/price*100;
+    t13txt = hold
+      ? `Dəstək 4210-4239 üzərində • Hədəf 4435 (${t1p>=0?"+":""}${t1p.toFixed(1)}%) / 4520 (${t2p>=0?"+":""}${t2p.toFixed(1)}%) • ${bull ? "bullish struktur → 1 XAL" : "ehtiyatlı (RSI<50) → 0 xal"}`
+      : `Dəstək 4210 qırıldı — setup pozuldu → 0 xal`;
+  }
   const trow = (id,txt) => `<div class="trow"><span class="tid">${id}</span><span>${txt}</span></div>`;
   document.getElementById("tacts").innerHTML =
     trow("T1", ex.length ? ex.join(" • ") : "Ekstrem yoxdur") +
@@ -234,7 +243,8 @@ async function main(){
     trow("T6", hist>0 ? "MACD bullish (histogram +)" : "MACD bearish (histogram −)") +
     trow("T7", `%b = ${pctB.toFixed(2)}` + (pctB>1 ? " (banddan kənar — güc)" : pctB<0 ? " (banddan kənar — güc)" : " (band içi)")) +
     trow("T9", `2x ATR stop: long ${fmt(price-2*a)} / short ${fmt(price+2*a)}`) +
-    trow("T11", "Funding: " + fundTxt);
+    trow("T11", "Funding: " + fundTxt) +
+    (t13txt ? trow("T13", t13txt) : "");
 
   document.getElementById("status").textContent = "Son yeniləmə: " + new Date().toLocaleString("az-AZ",{timeZone:"Asia/Baku"});
   try{

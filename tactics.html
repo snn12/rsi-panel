@@ -34,6 +34,7 @@
   <a href="signals.html">Siqnallar</a>
   <a href="calendar.html">Təqvim</a>
   <a href="tactics.html" class="on">Taktikalar</a>
+  <a href="skor.html">Skor</a>
 </div>
 <div id="list"></div>
 <div class="foot">Yeni taktika üçün de — araşdırıb bura əlavə edirəm.<br>Data: Bybit public API. Tövsiyə deyil.</div>
@@ -51,7 +52,8 @@ const T = [
  ["T9","ATR stop ölçüsü","HAMISI","ATR-14, 2-3x","Stop = 2x ATR məsafə. Giriş deyil, risk filtridir.",0],
  ["T10","Donchian breakout","FUTURES","20 şam max/min + həcm","20 şamlıq zirvə qırılması + həcm təsdiqi = long.",0],
  ["T11","Funding kontrarian","YALNIZ PERP","+0.05% / -0.05% (8s)","Çox müsbət funding = long sıxlığı, flush riski. Kontekst kimi.",0],
- ["T12","Həcm + RSI","HAMISI","Həcm 2x + RSI ekstrem","Həcm təsdiqsiz RSI ekstremi zəif sayılır.",0]
+ ["T12","Həcm + RSI","HAMISI","Həcm 2x + RSI ekstrem","Həcm təsdiqsiz RSI ekstremi zəif sayılır.",0],
+ ["T13","XAU reversal setup","XAU (CUSTOM)","Dəstək 4210-4239; hədəf 4435/4520","Dəstək intact + RSI-4H ≥ 50 = 1 xal. 4210 qırılsa pozuldu.",1]
 ];
 const el = document.getElementById("list");
 T.forEach(([id,name,mkt,par,rule,live])=>{

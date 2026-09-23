@@ -89,3 +89,14 @@
 - STOCKS (12 simvol: AAPL, NVDA, TSLA, META, MSTR, INTC, MU, SNDK, SKHYNIX, SAMSUNG, SOXL, SOXS — hamısı Bybit linear, qiymətlə doğrulandı): T2, T5 (əsas), T6, T7. Ekstrem hədlər fərqli olacaq: 70/30 (təsdiqlənəcək, hazırda 75/20 göstərir).
 - ƏMTƏƏ (3 simvol: XAU qızıl, XAG gümüş, XAUT): T2, T4, T6 (trend). Qızıl trend marketidir — reversal taktikaları ehtiyatla.
 - Qayda: eyni taktika adı fərqli marketdə = ayrı parametr dəsti + ayrı market etiketi. Parametrsiz köçürmək olmaz.
+
+## T13 — XAU Bullish Reversal Setup (CUSTOM, CANLIDIR)
+- Market: YALNIZ XAU (XAUUSDT). Mənbə: istifadəçinin şəxsi setup-ı.
+- Dəstək zonası: 4210–4239. Hədəflər: 4435 (T1), 4520 (T2). Pozulma: 4210 decisiv qırılsa.
+- Saytda hesablanan qayda: qiymət >= 4210 (dəstək intact) + RSI-4H >= 50 (bullish struktur) = 1 XAL, əks halda 0. Trend xətti + bulud qırılması vizual təsdiq kimi qeyddədir (sayt hesablamır).
+- Risk: 1-2% kapital, stop dəstək altında.
+- Status: coin.html-də T13 sətri + skor.html-də 1 xal + analysis/xauusdt.md.
+
+## Skor sistemi (CANLIDIR — skor.html)
+- Hər taktika 1 xal: T1 ekstrem • T2 zona • T4 trend • T6 momentum • T7 band • T11 funding • T12 həcm • T13 XAU setup (yalnız XAU).
+- Maksimum: 7 (XAU üçün 8). Səhifədə hədd seçimi: Hamısı / 2+ / 3+ / 4+, bal sırasına görə düzülür, keçən taktikaların hamısı görünür.

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skor • RSI Panel</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0 auto; max-width: 640px; font-family: -apple-system, "Segoe UI", Arial, sans-serif; background: #ffffff; color: #1a2b23; padding: 16px 14px 28px; }
+  h1 { font-size: 20px; margin: 4px 0 2px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .logo { width: 10px; height: 10px; border-radius: 3px; background: #0b8a7d; display: inline-block; }
+  .sub { color: #6b7f74; font-size: 13px; margin-bottom: 12px; }
+  .nav { display: flex; gap: 6px; margin: 10px 0; }
+  .nav a { flex: 1; text-align: center; padding: 10px 2px; background: #ffffff; border: 1px solid #e5ebe7; border-radius: 10px; color: #1a2b23; text-decoration: none; font-size: 12px; }
+  .nav a.on { background: #0b8a7d; border-color: #0b8a7d; color: #ffffff; font-weight: 600; }
+  .chips { display: flex; gap: 8px; margin: 2px 0 4px; }
+  .chip { flex: 1; padding: 8px; border-radius: 20px; border: 1px solid #e5ebe7; background: #ffffff; color: #1a2b23; font-size: 13px; }
+  .chip.on { background: #1a2b23; border-color: #1a2b23; color: #ffffff; font-weight: 600; }
+  .card { background: #ffffff; border: 1px solid #e5ebe7; border-radius: 12px; padding: 12px; margin-bottom: 8px; }
+  .row1 { display: flex; justify-content: space-between; align-items: center; }
+  .sym { font-weight: 600; font-size: 16px; }
+  a.slink { color: inherit; text-decoration: none; }
+  a.slink:active { color: #0b8a7d; }
+  .score { font-size: 15px; font-weight: 700; color: #ffffff; background: #0b8a7d; border-radius: 20px; padding: 3px 12px; font-variant-numeric: tabular-nums; }
+  .hits { margin-top: 8px; font-size: 13px; color: #1a2b23; line-height: 1.9; }
+  .hit { display: inline-block; background: #f5f8f6; border: 1px solid #e5ebe7; border-radius: 14px; padding: 2px 9px; margin: 0 5px 5px 0; font-size: 12px; }
+  .mtag { font-size: 10px; font-weight: 600; color: #0b8a7d; border: 1px solid #0b8a7d; border-radius: 10px; padding: 1px 7px; vertical-align: 2px; margin-left: 4px; }
+  .empty { background: #ffffff; border: 1px solid #e5ebe7; border-radius: 12px; padding: 22px; text-align: center; color: #6b7f74; }
+  .foot { color: #6b7f74; font-size: 12px; margin-top: 14px; line-height: 1.6; border-top: 1px solid #e5ebe7; padding-top: 10px; }
+  #status { display: inline-block; font-size: 13px; color: #6b7f74; margin: 6px 0; background: #f5f8f6; border-radius: 20px; padding: 6px 12px; }
+  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #0b8a7d; margin-right: 6px; }
+  button.ghost { padding: 10px 14px; border-radius: 10px; background: #ffffff; border: 1px solid #e5ebe7; color: #1a2b23; font-size: 14px; width: 100%; margin-top: 4px; }
+  button:active { opacity: .7; }
+</style>
+</head>
+<body>
+<h1><span class="logo"></span>Skor</h1>
+<div class="sub">Hər taktika 1 xal • Keçən taktikalar hamısı görünür</div>
+<div class="nav">
+  <a href="index.html">Home</a>
+  <a href="signals.html">Siqnallar</a>
+  <a href="calendar.html">Təqvim</a>
+  <a href="tactics.html">Taktikalar</a>
+  <a href="skor.html" class="on">Skor</a>
+</div>
+<div class="chips" id="thr">
+  <button class="chip" data-t="0">Hamısı</button>
+  <button class="chip" data-t="2">2+</button>
+  <button class="chip on" data-t="3">3+</button>
+  <button class="chip" data-t="4">4+</button>
+</div>
+<div id="status"><span class="dot"></span>Yüklənir...</div>
+<button class="ghost" onclick="refresh(true)">Yenilə</button>
+<div style="height:10px"></div>
+<div id="list"></div>
+
+<div class="foot">
+  Xal: T1 ekstrem • T2 zona • T4 trend • T6 momentum • T7 band • T11 funding • T12 həcm • T13 XAU setup.<br>
+  Data: Bybit public API. Tövsiyə deyil.
+</div>
+
+<script>
+const DEFAULTS = ["BTCUSDT","ETHUSDT","SOLUSDT","BNBUSDT","XRPUSDT","DOGEUSDT","ADAUSDT","AVAXUSDT","LINKUSDT","SUIUSDT","ZECUSDT","1000PEPEUSDT","NEARUSDT","AAPLUSDT","HYPEUSDT","SOXLUSDT","ENAUSDT","XAUUSDT","TAOUSDT","AKEUSDT","CLUSDT","ARBUSDT","ONDOUSDT","SNDKUSDT","UNIUSDT","WLDUSDT","WIFUSDT","ZETAUSDT","FARTCOINUSDT","AAVEUSDT","PUMPFUNUSDT","LTCUSDT","MUBARAKUSDT","USELESSUSDT","XPLUSDT","PENGUUSDT","XAGUSDT","TRUMPUSDT","SPCXUSDT","XMRUSDT","XLMUSDT","MSTRUSDT","XAUTUSDT","HBARUSDT","VVVUSDT","BTWUSDT","APTUSDT","SKHYUSDT","CRCLUSDT","SKHYNIXUSDT","PONSUSDT","UAIUSDT","BCHUSDT","MUUSDT","INJUSDT","KORUUSDT","INTCUSDT","1000BONKUSDT","GRASSUSDT","SHIB1000USDT","SEIUSDT","ASTERUSDT","OPUSDT","LITUSDT","KERNELUSDT","DASHUSDT","SNXXUSDT","LSKUSDT","WLFIUSDT","MARSCOINUSDT","STRKUSDT","4STOCKUSDT","BZUSDT","VIRTUALUSDT","CRVUSDT","AEROUSDT","FILUSDT","ZAMAUSDT","SPXUSDT","DOTUSDT","CASHCATUSDT","FORMUSDT","ICPUSDT","NVDAUSDT","METAUSDT","SAMSUNGUSDT","BRUSDT","PHAUSDT","AIOZUSDT","SAGAUSDT","TIAUSDT","TRXUSDT","TSLAUSDT","MNTUSDT","JUPUSDT","DGAIUSDT","SOXSUSDT","ALGOUSDT","MONUSDT","FLOCKUSDT","PENDLEUSDT","JTOUSDT","GRAMUSDT","ETHFIUSDT","SKRUSDT","NILUSDT","DRAMUSDT","PTBUSDT","ATOMUSDT","COTIUSDT"];
+const MARKETS = {stock:["AAPLUSDT","NVDAUSDT","TSLAUSDT","METAUSDT","MSTRUSDT","INTCUSDT","MUUSDT","SNDKUSDT","SKHYNIXUSDT","SAMSUNGUSDT","SOXLUSDT","SOXSUSDT"], com:["XAUUSDT","XAGUSDT","XAUTUSDT"]};
+function marketOf(s){ if(MARKETS.stock.includes(s)) return "stock"; if(MARKETS.com.includes(s)) return "com"; return "crypto"; }
+const CHUNK = 10;
+let thr = 3;
+try{ thr = Number(localStorage.getItem("rsi_thr") || 3); }catch(e){}
+let symbols = [];
+try {
+  const saved = JSON.parse(localStorage.getItem("rsi_symbols"));
+  symbols = (Array.isArray(saved) && saved.length) ? saved : [...DEFAULTS];
+}
+catch(e){ symbols = [...DEFAULTS]; }
+
+function rsi(closes, period=14){
+  if(closes.length < period+1) return null;
+  let g=[], l=[];
+  for(let i=1;i<closes.length;i++){ let c=closes[i]-closes[i-1]; g.push(Math.max(c,0)); l.push(Math.max(-c,0)); }
+  let ag = g.slice(0,period).reduce((a,b)=>a+b,0)/period;
+  let al = l.slice(0,period).reduce((a,b)=>a+b,0)/period;
+  if(al===0) return 100;
+  for(let i=period;i<g.length;i++){ ag=(ag*(period-1)+g[i])/period; al=(al*(period-1)+l[i])/period; }
+  if(al===0) return 100;
+  let rs=ag/al; return 100-(100/(1+rs));
+}
+function emaArr(src, p){
+  const k = 2/(p+1);
+  let e = src.slice(0,p).reduce((a,b)=>a+b,0)/p;
+  const out = []; out[p-1] = e;
+  for(let i=p;i<src.length;i++){ e = src[i]*k + e*(1-k); out[i] = e; }
+  return out;
+}
+function avg(a){ return a.reduce((x,y)=>x+y,0)/a.length; }
+async function fetchFull(sym, interval, limit=50){
+  const urls = [
+    `https://api.bybit.com/v5/market/kline?category=linear&symbol=${sym}&interval=${interval}&limit=${limit}`,
+    `https://api.bybit.com/v5/market/kline?category=spot&symbol=${sym}&interval=${interval}&limit=${limit}`
+  ];
+  for(const u of urls){
+    try{
+      const r = await fetch(u); const j = await r.json();
+      if(j.retCode===0 && j.result && j.result.list && j.result.list.length>25){
+        return [...j.result.list].reverse().map(x=>({c:Number(x[4]), v:Number(x[5])}));
+      }
+    }catch(e){}
+  }
+  return null;
+}
+async function fetchFunding(sym){
+  try{
+    const r = await fetch(`https://api.bybit.com/v5/market/funding/history?category=linear&symbol=${sym}&limit=1`);
+    const j = await r.json();
+    if(j.retCode===0 && j.result && j.result.list && j.result.list.length) return Number(j.result.list[0].fundingRate)*100;
+  }catch(e){}
+  return null;
+}
+function xtreme(x){
+  if(x==null) return null;
+  if(x>=87) return "EKSTREM " + x.toFixed(0);
+  if(x>=81) return "ÇOX QIZMIŞ " + x.toFixed(0);
+  if(x>=75) return "QIZMIŞ " + x.toFixed(0);
+  if(x<=20) return "SOYULMUŞ " + x.toFixed(0);
+  return null;
+}
+async function scoreSym(sym){
+  const [k1, k4] = await Promise.all([fetchFull(sym,"60"), fetchFull(sym,"240")]);
+  const funding = await fetchFunding(sym);
+  if(!k1 || !k4) return null;
+  const c1 = k1.map(x=>x.c), c4 = k4.map(x=>x.c), v4 = k4.map(x=>x.v);
+  const price = c4[c4.length-1];
+  const r1 = rsi(c1,14), r4 = rsi(c4,14);
+  const e12 = emaArr(c4,12).pop(), e50 = emaArr(c4,50).pop();
+  const e12a = emaArr(c4,12), e26a = emaArr(c4,26);
+  const mv = e12a.map((v,i)=> v==null||e26a[i]==null ? null : v-e26a[i]).filter(v=>v!=null);
+  const sa = emaArr(mv,9);
+  const hist = mv[mv.length-1]-sa[sa.length-1];
+  const hists = mv.map((v,i)=> v-sa[i]).slice(-20);
+  const avgAbs = avg(hists.map(Math.abs));
+  const m20 = avg(c4.slice(-20));
+  const sd = Math.sqrt(avg(c4.slice(-20).map(x=>(x-m20)*(x-m20))));
+  const pctB = (price-(m20-2*sd))/(4*sd);
+  const vAvg = avg(v4.slice(-20)), spike = v4[v4.length-1] > 2*vAvg;
+  const hits = [];
+  const ex = [xtreme(r1), xtreme(r4)].filter(Boolean);
+  if(ex.length) hits.push("T1 " + ex.join(" / "));
+  if(r4!=null && r4>55) hits.push("T2 bullish");
+  else if(r4!=null && r4<45) hits.push("T2 bearish");
+  if(price>e50 && e12>e50) hits.push("T4 trend yuxarı");
+  else if(price<e50 && e12<e50) hits.push("T4 trend aşağı");
+  if(avgAbs>0 && Math.abs(hist)>avgAbs) hits.push("T6 momentum");
+  if(pctB>0.8) hits.push("T7 üst band");
+  else if(pctB<0.2) hits.push("T7 alt band");
+  if(funding!=null && funding>=0.05) hits.push("T11 long sıx");
+  else if(funding!=null && funding<=-0.05) hits.push("T11 short sıx");
+  if(spike && r4!=null && (r4>=70||r4<=30)) hits.push("T12 həcmli");
+  const isXau = sym.indexOf("XAU")===0;
+  if(isXau && price>=4210 && r4!=null && r4>=50) hits.push("T13 XAU setup");
+  return {sym, price, score: hits.length, max: isXau?8:7, hits};
+}
+function render(items){
+  const el = document.getElementById("list"); el.innerHTML="";
+  const shown = items.filter(o => o && o.score>=thr).sort((a,b)=> b.score-a.score);
+  if(!shown.length){ el.innerHTML = `<div class="empty">Bu həddi keçən yoxdur. Həddi azalt.</div>`; return; }
+  shown.forEach(o=>{
+    const m = marketOf(o.sym);
+    const tag = m==="crypto" ? "" : `<span class="mtag">${m==="stock"?"STOCK":"ƏMTƏƏ"}</span>`;
+    const d = document.createElement("div"); d.className = "card";
+    d.innerHTML = `<div class="row1"><span class="sym"><a class="slink" href="coin.html?symbol=${o.sym}">${o.sym}</a>${tag}</span>` +
+      `<span class="score">${o.score}/${o.max}</span></div>` +
+      `<div class="hits">${o.hits.map(h=>`<span class="hit">${h}</span>`).join("")}</div>`;
+    el.appendChild(d);
+  });
+}
+let runId = 0, timer = null, count = 120;
+async function refresh(manual){
+  const my = ++runId;
+  const st = document.getElementById("status");
+  st.innerHTML = "<span class='dot'></span>Yüklənir 0/" + symbols.length + "...";
+  const items = [];
+  for(let i = 0; i < symbols.length; i += CHUNK){
+    const part = await Promise.all(symbols.slice(i, i + CHUNK).map(scoreSym));
+    if(my !== runId) return;
+    items.push(...part.filter(Boolean));
+    st.innerHTML = "<span class='dot'></span>Yüklənir " + Math.min(i + CHUNK, symbols.length) + "/" + symbols.length + "...";
+  }
+  render(items);
+  const t = new Date().toLocaleString("az-AZ",{timeZone:"Asia/Baku"});
+  st.innerHTML = `<span class='dot'></span>Son yeniləmə: ${t} • Növbəti: 120 saniyə`;
+  count = 120;
+  if(timer) clearInterval(timer);
+  timer = setInterval(()=>{
+    count--;
+    if(count<=0){ refresh(false); }
+    else st.innerHTML = `<span class='dot'></span>Son yeniləmə: ${t} • Növbəti: ${count} saniyə`;
+  },1000);
+}
+function syncThr(){ document.querySelectorAll("#thr .chip").forEach(b => b.classList.toggle("on", Number(b.dataset.t)===thr)); }
+function setThr(t){ thr = t; try{ localStorage.setItem("rsi_thr", String(t)); }catch(e){} syncThr(); refresh(true); }
+document.querySelectorAll("#thr .chip").forEach(b => b.addEventListener("click", () => setThr(Number(b.dataset.t))));
+syncThr();
+refresh(false);
+</script>
+</body>
+</html>
