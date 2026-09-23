@@ -78,6 +78,12 @@
 </div>
 
 <div class="card">
+  <h3>ALQO SİQNAL (T14)</h3>
+  <div class="verdict v-flat" id="algo">...</div>
+  <div id="algod" style="font-size:13px;color:#64748B;margin-top:8px;line-height:1.6"></div>
+</div>
+
+<div class="card">
   <h3>GÖSTƏRİCİLƏR (4H)</h3>
   <div id="inds"></div>
 </div>
@@ -242,6 +248,18 @@ async function main(){
   const vEl = document.getElementById("verdict");
   vEl.textContent = v[0]; vEl.className = "verdict " + v[1];
 
+  const tg = t14signal(h4);
+  const aEl = document.getElementById("algo"), aD = document.getElementById("algod");
+  if(tg.state==="BUY" || tg.state==="SELL"){
+    const up = tg.state==="BUY";
+    aEl.textContent = tg.state; aEl.className = "verdict " + (up ? "v-up2" : "v-down2");
+    aD.textContent = `Giriş ${fmt(tg.entry)} • TP1 ${fmt(tg.tp1)} • TP2 ${fmt(tg.tp2)} • SL ${fmt(tg.sl)}`;
+  } else {
+    aEl.textContent = "GÖZLƏ"; aEl.className = "verdict v-flat";
+    aD.textContent = "Səbəb: 4/4 razılıq yoxdur (filtr süzür)";
+  }
+  const t14txt = tg.state==="YOXL" ? "Siqnal yoxdur (sakit rejim — filtr süzür)" : `${tg.state} @ ${fmt(tg.entry)} • TP1 ${fmt(tg.tp1)} • TP2 ${fmt(tg.tp2)} • SL ${fmt(tg.sl)}`;
+
   const row = (k,val,cls) => `<div class="krow"><span>${k}</span><span class="${cls||""}">${val}</span></div>`;
   const rc = x => x==null ? "flat" : x>=70 ? "down" : x<=30 ? "up" : "flat";
   document.getElementById("inds").innerHTML =
@@ -276,8 +294,6 @@ async function main(){
       ? `Dəstək ${fmt(sup)} üzərində • Hədəf ${fmt(res)} (${t1p>=0?"+":""}${t1p.toFixed(1)}%) / ${fmt(tgt2)} (${t2p>=0?"+":""}${t2p.toFixed(1)}%) • ${bull ? "bullish struktur → 1 XAL" : "ehtiyatlı (RSI<50) → 0 xal"}`
       : `Dəstək ${fmt(sup)} qırıldı — setup pozuldu → 0 xal`;
   }
-  const tg = t14signal(h4);
-  const t14txt = tg.state==="YOXL" ? "Siqnal yoxdur (sakit rejim — filtr süzür)" : `${tg.state} @ ${fmt(tg.entry)} • TP1 ${fmt(tg.tp1)} • TP2 ${fmt(tg.tp2)} • SL ${fmt(tg.sl)}`;
   const trow = (id,txt) => `<div class="trow"><span class="tid">${id}</span><span>${txt}</span></div>`;
   document.getElementById("tacts").innerHTML =
     trow("T1", ex.length ? ex.join(" • ") : "Ekstrem yoxdur") +
