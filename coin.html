@@ -57,12 +57,14 @@
 </head>
 <body>
 <a class="back" href="index.html">← Home</a>
+<button id="favBtn" onclick="toggleFavCoin()" style="margin-left:8px;padding:6px 12px;border-radius:10px;border:1px solid #E2E8F0;background:#fff;font-size:13px;font-weight:600;">☆ Saxla</button>
 <div class="nav">
   <a href="index.html">Home</a>
   <a href="signals.html">Siqnallar</a>
   <a href="calendar.html">Təqvim</a>
   <a href="tactics.html">Taktikalar</a>
   <a href="skor.html">Skor</a>
+  <a href="fav.html">Sevimli</a>
 </div>
 <h1><span class="logo"></span><span id="sym">...</span><span id="mtag"></span></h1>
 <div class="sub" id="status">Yüklənir...</div>
@@ -920,6 +922,19 @@ async function main(){
     document.getElementById("notes").innerHTML = "<p style='color:#6b7f74'>Bu coin üçün hələ qeyd yoxdur — de, yazım.</p>";
   }
 }
+function syncFavBtn(){
+  let favs=[]; try{favs=JSON.parse(localStorage.getItem("rsi_favs"))||[];}catch(e){}
+  const on=favs.includes(SYM);
+  const b=document.getElementById("favBtn");
+  if(b) b.textContent=(on?"★ ":"☆ ")+"Saxla";
+}
+function toggleFavCoin(){
+  let favs=[]; try{favs=JSON.parse(localStorage.getItem("rsi_favs"))||[];}catch(e){}
+  if(favs.includes(SYM)) favs=favs.filter(x=>x!==SYM); else favs.push(SYM);
+  try{localStorage.setItem("rsi_favs",JSON.stringify(favs));}catch(e){}
+  syncFavBtn();
+}
+syncFavBtn();
 main();
 </script>
 </body>

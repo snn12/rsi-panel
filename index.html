@@ -35,6 +35,8 @@
   .rtf small { font-size: 10px; color: #64748B; display: block; font-weight: 600; }
   .rtf b { font-size: 16px; font-variant-numeric: tabular-nums; }
   .rdel { background: transparent; border: 0; color: #CBD5E1; font-size: 18px; padding: 2px 6px; }
+  .fav { color: #CBD5E1 !important; font-size: 16px !important; }
+  .fav.on { color: #EAB308 !important; }
   .ob { color: #DC2626; } .hot { color: #EA8600; } .ok { color: #94A3B8; } .cheap { color: #4F46E5; } .os { color: #16A34A; }
   .empty { background: #fff; border: 1px solid #E2E8F0; border-radius: 14px; padding: 22px; text-align: center; color: #64748B; }
   .foot { color: #64748B; font-size: 12px; margin-top: 14px; line-height: 1.6; text-align: center; }
@@ -56,6 +58,7 @@
   <a href="calendar.html">Təqvim</a>
   <a href="tactics.html">Taktikalar</a>
   <a href="skor.html">Skor</a>
+  <a href="fav.html">Sevimli</a>
 </div>
 <div class="chips" id="chips">
   <button class="chip on" data-m="all">Hamısı</button>
@@ -84,6 +87,12 @@ const MARKETS = {stock:["AAPLUSDT","NVDAUSDT","TSLAUSDT","METAUSDT","MSTRUSDT","
 function marketOf(s){ if(MARKETS.stock.includes(s)) return "stock"; if(MARKETS.com.includes(s)) return "com"; return "crypto"; }
 let curMkt = "all";
 try{ curMkt = localStorage.getItem("rsi_mkt") || "all"; }catch(e){}
+let favs = [];
+try{ favs = JSON.parse(localStorage.getItem("rsi_favs")) || []; }catch(e){}
+function isFav(s){ return favs.includes(s); }
+function saveFavs(){ try{ localStorage.setItem("rsi_favs", JSON.stringify(favs)); }catch(e){} }
+function toggleFav(s){ if(isFav(s)) favs=favs.filter(x=>x!==s); else favs.push(s); saveFavs(); render(lastItems); }
+let lastItems = [];
 let symbols = [];
 function save(){ try{ localStorage.setItem("rsi_symbols", JSON.stringify(symbols)); localStorage.setItem("rsi_ver", VER); }catch(e){} }
 try {
@@ -142,6 +151,7 @@ async function loadOne(sym){
   return out;
 }
 function render(items){
+  lastItems = items || [];
   const el = document.getElementById("list"); el.innerHTML="";
   const shown = items.filter(o => curMkt==="all" || marketOf(o.sym)===curMkt);
   if(!shown.length){ el.innerHTML = `<div class="empty">Bu marketdə coin yoxdur.</div>`; return; }
@@ -154,6 +164,7 @@ function render(items){
       `<div class="rid"><a class="slink" href="coin.html?symbol=${o.sym}">${o.sym}</a>${tag}<div class="rprice">${o.price!=null?fmt(o.price):"-"}</div></div>`+
       `<div class="rtf"><small>1H</small><b class="${cls(r1)}">${r1!=null?r1.toFixed(0):"-"}</b></div>`+
       `<div class="rtf"><small>4H</small><b class="${cls(r4)}">${r4!=null?r4.toFixed(0):"-"}</b></div>`+
+      `<button class="rdel fav${isFav(o.sym)?" on":""}" onclick="toggleFav('${o.sym}')">★</button>`+
       `<button class="rdel" onclick="delSym('${o.sym}')">×</button>`;
     el.appendChild(d);
   });
