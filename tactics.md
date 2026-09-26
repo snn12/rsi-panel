@@ -16,7 +16,7 @@
 - Qayda: RSI 50-dən yuxarı = bullish momentum (long tərəfə üstünlük); 50-dən aşağı = bearish. Güclü uptrenddə RSI 40-50 zonasından sıçrayış = long davamı; downtrenddə 50-60-dan geri dönmə = short davamı.
 - Data: close kifayətdir.
 
-## T3 — RSI Divergensiya (regular + hidden)
+## T3 — RSI Divergensiya (CANLIDIR)
 - Market: bütün marketlər, xüsusilə range. TF: 1H, 4H.
 - Parametr: RSI-14, pivot gücü 5/5 (hər tərəfdə 5 bar).
 - Qayda: Qiymət lower-low, RSI higher-low = bullish divergensiya (dönüş long). Qiymət higher-high, RSI lower-high = bearish. Hidden: qiymət higher-low + RSI lower-low = trend davamı long.
@@ -29,7 +29,7 @@
 - Qayda: EMA12 yuxarı kəsdi = long; aşağı kəsdi = çıx/sell. Stop = əvvəlki swing low. Yalan siqnal filtri: kəsişmədən sonra məsafə kiçikdirsə (<5%) və qiymət EMA12 üzərindədirsə güclü say.
 - Data: close, minimum 60+ şam (hazırda limit=50 — bu taktika üçün limit 100+ lazımdır).
 
-## T5 — Golden Cross / Death Cross (SMA 50/200)
+## T5 — Golden Cross / Death Cross (CANLIDIR)
 - Market: spot, ETF, stocks, gündəlik TF. Gecikən təsdiq siqnalıdır, giriş üçün deyil.
 - Parametr: SMA-50, SMA-200.
 - Qayda: SMA50 yuxarı kəsdi = golden cross (bullish struktur); aşağı = death cross. Təsdiq: kəsişmədə hər iki MA yuxarı baxır + qiymət hər ikisinin üstündə + həcm yüksək.
@@ -47,7 +47,7 @@
 - Qayda (Bollingerin özü): band tag-i tək başına sell/buy deyil.
 - Data: close, 25+ şam.
 
-## T8 — Bollinger Squeeze (sıxılma → partlayış)
+## T8 — Bollinger Squeeze (CANLIDIR)
 - Market: crypto perp (güclü partlayışlar), forex. Yönü demir, yalnız "böyük hərəkət yaxındır" deyir.
 - Parametr: BB 20/2, BandWidth = (üst-alt)/orta.
 - Qayda: BandWidth 6 aylıq minimumda (və ya son 120 şamın ən dar 5%-i) = SQUEEZE. Giriş: üst banddan yuxarı təsdiqli bağlanış + həcm sıçrayışı = long (əksi short). Stop: orta SMA altı və ya 1.5x ATR.
@@ -59,7 +59,7 @@
 - Qayda: stop məsafəsi = 2x ATR (aqressiv) / 3x ATR (geniş). TP = 2x ATR (1:2 R:R üçün) və ya trailing.
 - Data: high/low/close, 20+ şam.
 
-## T10 — Donchian Breakout 20 + Həcm
+## T10 — Donchian Breakout (CANLIDIR)
 - Market: futures, əmtəə, likvid perp-lər.
 - Parametr: 20 şamın ən yüksək high / ən aşağı low.
 - Qayda: 20 şamlıq yuxarı qırılma = long; həcm təsdiqi (cari həcm > orta həcm 20) yalan qırılmaları ~ yarıya endirir (təxminən 56% → 47% fail).
@@ -121,6 +121,10 @@
 ## T17 — SMT divergensiya BTC/ETH (CANLIDIR)
 - Qayda: eyni TF-də son 2 pivot müqayisəsi. BTC yeni zirvə + ETH yox = bearish SMT; BTC yeni dib + ETH yox = bullish SMT. Təsdiq deyil, kontekst siqnalıdır.
 - Status: BTC/ETH coin səhifəsində sətir + skor.html-də 1 xal (yalnız bu 2 simvol).
+
+## T18 — Turtle Soup, M formation (CANLIDIR)
+- Qayda: bərabər zirvə/dib (±0.15%) + fitil süpürməsi + içəridə bağlanış = reversal. Təzə setup (≤5 şam) = 1 xal. Stop sweep ekstremindən kənarda.
+- Status: coin.html-də sətir + skor.html-də 1 xal.
 
 ## T19 — Daily sweep (CANLIDIR)
 - Qayda: dünənki şam əvvəlki günün high/low-nu fitillə deşir + içəridə bağlanır = setup. Stop gündəlik ekstremdən kənarda, TP əks hovuz / 2R+.

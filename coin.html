@@ -623,6 +623,88 @@ function bosChoch(kl){
   }
   return{trend,event:null,bars:99};
 }
+function rsiDiv(kl){
+  const c=kl.map(x=>x.c);
+  const r=rsiSeries(c,14);
+  const P=pivHL(kl,5);
+  const L=P.L.slice(-2), H=P.H.slice(-2);
+  if(L.length===2 && r[L[0].i]!=null && r[L[1].i]!=null){
+    if(L[1].p<L[0].p && r[L[1].i]>r[L[0].i]) return{dir:1};
+  }
+  if(H.length===2 && r[H[0].i]!=null && r[H[1].i]!=null){
+    if(H[1].p>H[0].p && r[H[1].i]<r[H[0].i]) return{dir:-1};
+  }
+  return null;
+}
+function smaArr(src,p){
+  const out=new Array(src.length).fill(null);
+  let s=0;
+  for(let i=0;i<src.length;i++){s+=src[i];if(i>=p)s-=src[i-p];if(i>=p-1)out[i]=s/p;}
+  return out;
+}
+function crossState(c){
+  const s50=smaArr(c,50), s200=smaArr(c,200);
+  const n=c.length-1;
+  if(s50[n]==null||s200[n]==null) return null;
+  const above=s50[n]>s200[n];
+  let flip=-1;
+  for(let i=n;i>Math.max(200,n-10);i--){
+    if(s50[i]==null||s200[i]==null||s50[i-1]==null||s200[i-1]==null) continue;
+    if((s50[i]>s200[i])!==(s50[i-1]>s200[i-1])){flip=n-i;break;}
+  }
+  const fresh=flip>=0&&flip<=5;
+  return{above,fresh,dir:fresh?(above?1:-1):0};
+}
+function squeezeState(kl,len=20){
+  const c=kl.map(x=>x.c);
+  if(c.length<130) return{sqz:false,rel:0};
+  const widths=[];
+  for(let i=len-1;i<c.length;i++){
+    const sl=c.slice(i-len+1,i+1);
+    const m=sl.reduce((a,b)=>a+b,0)/len;
+    const sd=Math.sqrt(sl.reduce((a,b)=>a+(b-m)*(b-m),0)/len);
+    widths.push(2*sd/m);
+  }
+  const cur=widths[widths.length-1];
+  const sqz=widths.filter(x=>x<=cur).length/widths.length<=0.05;
+  const sl=c.slice(-len);
+  const m=sl.reduce((a,b)=>a+b,0)/len;
+  const sd=Math.sqrt(sl.reduce((a,b)=>a+(b-m)*(b-m),0)/len);
+  const last=c[c.length-1];
+  const rel=last>m+2*sd?1:last<m-2*sd?-1:0;
+  return{sqz,rel};
+}
+function donchian(kl,look=20){
+  const cl=kl.slice(0,-1);
+  const n=cl.length-1;
+  if(n<look+5) return null;
+  const h=cl.map(x=>x.h),l=cl.map(x=>x.l),v=cl.map(x=>x.v),c=cl.map(x=>x.c);
+  const hh=Math.max(...h.slice(n-look,n)), ll=Math.min(...l.slice(n-look,n));
+  const va=v.slice(n-look,n).reduce((a,b)=>a+b,0)/look;
+  if(c[n]>hh && v[n]>va) return{dir:1};
+  if(c[n]<ll && v[n]>va) return{dir:-1};
+  return null;
+}
+function turtleSoup(kl,tol=0.0015){
+  const cl=kl.slice(0,-1);
+  const n=cl.length-1;
+  if(n<35) return null;
+  let best=null;
+  const consider=(dir,k)=>{ if(n-k<=5 && (!best || k>best.k)) best={dir,k}; };
+  for(let i=Math.max(0,n-30);i<=n-2;i++){
+    for(let j=i+1;j<=Math.min(n,i+10);j++){
+      if(Math.abs(cl[j].h-cl[i].h)/cl[i].h<tol){
+        const lvl=Math.max(cl[i].h,cl[j].h);
+        for(let k=j+1;k<=n;k++){ if(cl[k].h>lvl && cl[k].c<lvl){ consider(-1,k); break; } }
+      }
+      if(Math.abs(cl[j].l-cl[i].l)/cl[i].l<tol){
+        const lvl=Math.min(cl[i].l,cl[j].l);
+        for(let k=j+1;k<=n;k++){ if(cl[k].l<lvl && cl[k].c>lvl){ consider(1,k); break; } }
+      }
+    }
+  }
+  return best;
+}
 function t14signal(kl){
   const closed = kl.slice(0,-1);
   if(closed.length<60) return {state:"YOXL"};
@@ -862,6 +944,11 @@ async function main(){
       case "T31": return (rp&&((rp.regime==="BULL"&&rp.score>=4)||(rp.regime==="BEAR"&&rp.score<=1)))?(rp.regime==="BULL"?"AL":"SAT"):"GOZLE";
       case "T32": return (bf&&bf.flipAgo<=3)?(bf.state===1?"AL":"SAT"):"GOZLE";
       case "T33": return (bc&&bc.event)?(bc.event.indexOf("+")>=0?"AL":"SAT"):"GOZLE";
+      case "T3": return dv3?(dv3.dir===1?"AL":"SAT"):"GOZLE";
+      case "T5": return (gx&&gx.fresh)?(gx.dir===1?"AL":"SAT"):"GOZLE";
+      case "T8": return sq.rel===1?"AL":sq.rel===-1?"SAT":"GOZLE";
+      case "T10": return dc?(dc.dir===1?"AL":"SAT"):"GOZLE";
+      case "T18": return ts18?(ts18.dir===1?"AL":"SAT"):"GOZLE";
       default: return "GOZLE";
     }
   }
@@ -951,13 +1038,23 @@ async function main(){
       `<div class="krow"><span>TP1 (${r1.toFixed(1)}R)</span><span class="up">${fmt(p.tp[0])}</span></div>` +
       `<div class="krow"><span>TP2 (${r2.toFixed(1)}R)</span><span class="up">${fmt(p.tp[1])}</span></div>`;
   }).join("") : `<div class="krow"><span>Plan</span><span class="flat">aktiv siqnal yoxdur</span></div>`;
+  const dv3 = rsiDiv(h4);
+  const gx = crossState(c4);
+  const sq = squeezeState(h4);
+  const dc = donchian(h4);
+  const ts18 = turtleSoup(h4);
   document.getElementById("tacts").innerHTML =
     trow("T1", ex.length ? ex.join(" • ") : "Ekstrem yoxdur") +
+    trow("T3", dv3 ? `${dv3.dir===1?"Bullish":"Bearish"} divergensiya → 1 XAL` : "Divergensiya yoxdur") +
+    trow("T5", gx ? (gx.fresh ? `${gx.dir===1?"Golden":"Death"} cross (təzə) → 1 XAL` : `${gx.above?"Golden":"Death"} struktur (izlə)`) : "Data azdır") +
     trow("T2", `1H: ${zone(r1)} • 4H: ${zone(r4)}`) +
     trow("T4", price>e50 ? "Qiymət EMA50 üstündə (trend yuxarı)" : "Qiymət EMA50 altında (trend aşağı)") +
     trow("T6", hist>0 ? "MACD bullish (histogram +)" : "MACD bearish (histogram −)") +
     trow("T7", `%b = ${pctB.toFixed(2)}` + (pctB>1 ? " (banddan kənar — güc)" : pctB<0 ? " (banddan kənar — güc)" : " (band içi)")) +
     trow("T9", `2x ATR stop: long ${fmt(price-2*a)} / short ${fmt(price+2*a)}`) +
+    trow("T8", sq.sqz ? "SQUEEZE aktiv (sıxılma) → 1 XAL" : sq.rel!==0 ? `Squeeze release (${sq.rel===1?"yuxarı":"aşağı"}) → 1 XAL` : "Squeeze yoxdur") +
+    trow("T10", dc ? `Donchian breakout ${dc.dir===1?"yuxarı":"aşağı"} + həcm → 1 XAL` : "Breakout yoxdur") +
+    trow("T18", ts18 ? `Turtle Soup ${ts18.dir===1?"bullish":"bearish"} → 1 XAL` : "Turtle Soup yoxdur") +
     trow("T11", "Funding: " + fundTxt) +
     (t13txt ? trow("T13", t13txt) : "") +
     trow("T14", t14txt) +

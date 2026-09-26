@@ -83,7 +83,7 @@
 <div id="list"></div>
 
 <div class="foot">
-  Xal: T1 ekstrem • T2 zona • T4 trend • T6 momentum • T7 band • T11 funding • T12 həcm • T13 XAU • T14 ALQO • T15 FVG • T16 sweep • T17 SMT • T19 daily • T20 SSL • T21 kernel • T22 UMA • T23 OTE • T24 OB • T25 MACD • T26 retest • T27 link • T29 VPM • T30 RMS • T31 RSIPro • T32 BAND • T33 BOS.<br>
+  Xal: T1 ekstrem • T2 zona • T4 trend • T6 momentum • T7 band • T11 funding • T12 həcm • T13 XAU • T14 ALQO • T15 FVG • T16 sweep • T17 SMT • T19 daily • T20 SSL • T21 kernel • T22 UMA • T23 OTE • T24 OB • T25 MACD • T26 retest • T27 link • T29 VPM • T30 RMS • T31 RSIPro • T32 BAND • T33 BOS • T3 div • T5 cross • T8 squeeze • T10 breakout • T18 turtle.<br>
   Data: Bybit public API. Tövsiyə deyil.
 </div>
 
@@ -562,6 +562,97 @@ function bosChoch(kl){
   }
   return{trend,event:null};
 }
+function rsiSeries(c,p=14){
+  const out=new Array(c.length).fill(null);
+  let g=0,l=0;
+  for(let i=1;i<=p;i++){const d=c[i]-c[i-1];if(d>0)g+=d;else l-=d;}
+  let ag=g/p, al=l/p;
+  out[p]=al===0?100:100-100/(1+ag/al);
+  for(let i=p+1;i<c.length;i++){const d=c[i]-c[i-1];ag=(ag*(p-1)+Math.max(d,0))/p;al=(al*(p-1)+Math.max(-d,0))/p;out[i]=al===0?100:100-100/(1+ag/al);}
+  return out;
+}
+function rsiDiv(kl){
+  const c=kl.map(x=>x.c);
+  const r=rsiSeries(c,14);
+  const P=pivHL(kl,5);
+  const L=P.L.slice(-2), H=P.H.slice(-2);
+  if(L.length===2 && r[L[0].i]!=null && r[L[1].i]!=null){
+    if(L[1].p<L[0].p && r[L[1].i]>r[L[0].i]) return{dir:1};
+  }
+  if(H.length===2 && r[H[0].i]!=null && r[H[1].i]!=null){
+    if(H[1].p>H[0].p && r[H[1].i]<r[H[0].i]) return{dir:-1};
+  }
+  return null;
+}
+function smaArr(src,p){
+  const out=new Array(src.length).fill(null);
+  let s=0;
+  for(let i=0;i<src.length;i++){s+=src[i];if(i>=p)s-=src[i-p];if(i>=p-1)out[i]=s/p;}
+  return out;
+}
+function crossState(c){
+  const s50=smaArr(c,50), s200=smaArr(c,200);
+  const n=c.length-1;
+  if(s50[n]==null||s200[n]==null) return null;
+  const above=s50[n]>s200[n];
+  let flip=-1;
+  for(let i=n;i>Math.max(200,n-10);i--){
+    if(s50[i]==null||s200[i]==null||s50[i-1]==null||s200[i-1]==null) continue;
+    if((s50[i]>s200[i])!==(s50[i-1]>s200[i-1])){flip=n-i;break;}
+  }
+  const fresh=flip>=0&&flip<=5;
+  return{above,fresh,dir:fresh?(above?1:-1):0};
+}
+function squeezeState(kl,len=20){
+  const c=kl.map(x=>x.c);
+  if(c.length<130) return{sqz:false,rel:0};
+  const widths=[];
+  for(let i=len-1;i<c.length;i++){
+    const sl=c.slice(i-len+1,i+1);
+    const m=sl.reduce((a,b)=>a+b,0)/len;
+    const sd=Math.sqrt(sl.reduce((a,b)=>a+(b-m)*(b-m),0)/len);
+    widths.push(2*sd/m);
+  }
+  const cur=widths[widths.length-1];
+  const sqz=widths.filter(x=>x<=cur).length/widths.length<=0.05;
+  const sl=c.slice(-len);
+  const m=sl.reduce((a,b)=>a+b,0)/len;
+  const sd=Math.sqrt(sl.reduce((a,b)=>a+(b-m)*(b-m),0)/len);
+  const last=c[c.length-1];
+  const rel=last>m+2*sd?1:last<m-2*sd?-1:0;
+  return{sqz,rel};
+}
+function donchian(kl,look=20){
+  const cl=kl.slice(0,-1);
+  const n=cl.length-1;
+  if(n<look+5) return null;
+  const h=cl.map(x=>x.h),l=cl.map(x=>x.l),v=cl.map(x=>x.v),c=cl.map(x=>x.c);
+  const hh=Math.max(...h.slice(n-look,n)), ll=Math.min(...l.slice(n-look,n));
+  const va=v.slice(n-look,n).reduce((a,b)=>a+b,0)/look;
+  if(c[n]>hh && v[n]>va) return{dir:1};
+  if(c[n]<ll && v[n]>va) return{dir:-1};
+  return null;
+}
+function turtleSoup(kl,tol=0.0015){
+  const cl=kl.slice(0,-1);
+  const n=cl.length-1;
+  if(n<35) return null;
+  let best=null;
+  const consider=(dir,k)=>{ if(n-k<=5 && (!best || k>best.k)) best={dir,k}; };
+  for(let i=Math.max(0,n-30);i<=n-2;i++){
+    for(let j=i+1;j<=Math.min(n,i+10);j++){
+      if(Math.abs(cl[j].h-cl[i].h)/cl[i].h<tol){
+        const lvl=Math.max(cl[i].h,cl[j].h);
+        for(let k=j+1;k<=n;k++){ if(cl[k].h>lvl && cl[k].c<lvl){ consider(-1,k); break; } }
+      }
+      if(Math.abs(cl[j].l-cl[i].l)/cl[i].l<tol){
+        const lvl=Math.min(cl[i].l,cl[j].l);
+        for(let k=j+1;k<=n;k++){ if(cl[k].l<lvl && cl[k].c>lvl){ consider(1,k); break; } }
+      }
+    }
+  }
+  return best;
+}
 function pivHL(kl,k=3){
   const H=[],L=[];
   for(let i=k;i<kl.length-k;i++){
@@ -734,8 +825,19 @@ async function scoreSym(sym){
   }
   const bc = bosChoch(k4);
   if(bc && bc.event) hits.push("T33 " + bc.event);
+  const dv3 = rsiDiv(k4);
+  if(dv3) hits.push("T3 div " + (dv3.dir===1?"bull":"bear"));
+  const gx = crossState(c4);
+  if(gx && gx.fresh) hits.push("T5 " + (gx.dir===1?"golden":"death"));
+  const sq = squeezeState(k4);
+  if(sq.sqz) hits.push("T8 squeeze");
+  else if(sq.rel!==0) hits.push("T8 release");
+  const dc = donchian(k4);
+  if(dc) hits.push("T10 breakout " + (dc.dir===1?"up":"dn"));
+  const ts18 = turtleSoup(k4);
+  if(ts18) hits.push("T18 turtle " + (ts18.dir===1?"bull":"bear"));
   const t17x = (sym==="BTCUSDT"||sym==="ETHUSDT") ? 1 : 0;
-  return {sym, price, score: hits.length, max: 24+t17x+(isXau?1:0), hits, plan};
+  return {sym, price, score: hits.length, max: 29+t17x+(isXau?1:0), hits, plan};
 }
 function render(items){
   const el = document.getElementById("list"); el.innerHTML="";
