@@ -137,6 +137,9 @@ tr.morerow td{background:#0E1319;}
 button{transition:opacity .15s;}
 button:active{opacity:.7;}
 </style>
+<style>
+.hit-gold{border:1px solid #F7B500 !important;box-shadow:0 0 8px rgba(247,181,0,.35);}
+</style>
 </head>
 <body>
 <header class="topbar">
@@ -1089,7 +1092,7 @@ function render(items){
       `<td><span class="score">${ss}/${SEL.size}</span></td>`+
       `<td><span class="verdict v-${sv.v}">${sv.v} ${sv.al}-${sv.sat}</span> <button class="morebtn" onclick="toggleMore(this)">More +</button></td></tr>`+
       `<tr class="morerow" style="display:none"><td colspan="3">`+
-      `<div class="hits">${o.hits.filter(h=>SEL.has(h.split(" ")[0])).map(h=>`<span class="hit">${h}</span>`).join("")}</div>` +
+      `<div class="hits">${o.hits.filter(h=>SEL.has(h.split(" ")[0])).map(h=>{const id=h.split(" ")[0];const g=["T14","T18","T20","T21","T25","T32"].indexOf(id)>=0;return `<span class="hit${g?" hit-gold":""}">${h}</span>`;}).join("")}</div>` +
       (o.plan ? `<div class="planline">${o.plan.dir} @ ${fmt(o.plan.e)} • SL ${fmt(o.plan.sl)} • TP1 ${fmt(o.plan.tp1)} • TP2 ${fmt(o.plan.tp2)}</div>` : "") +
       `<div class="morebox">${o.dirs.map(x=>`<div class="mrow"><span>${x.id}${SEL.has(x.id)?"":" •"}</span><span class="md-${x.d}">${x.d==="NEYTRAL"?"GÖZLƏ":x.d}</span></div>`).join("")}</div>`+
       `</td></tr>`;
