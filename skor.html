@@ -41,6 +41,7 @@
   .card { background: #fff; border-color: #E2E8F0; box-shadow: 0 1px 4px rgba(15,29,56,.06); }
   .score { background: #4F46E5; }
   .hit { background: #F1F5F9; border-color: #E2E8F0; }
+  .planline { margin-top: 8px; font-size: 13px; font-weight: 600; color: #0F1D38; background: #F1F5F9; border-radius: 10px; padding: 7px 10px; font-variant-numeric: tabular-nums; }
   .mtag { color: #4F46E5; border-color: #4F46E5; }
   .chip { background: #fff; border-color: #E2E8F0; color: #0F1D38; }
   .chip.on { background: #0F1D38; border-color: #0F1D38; }
@@ -116,6 +117,13 @@ function emaArr(src, p){
   const out = []; out[p-1] = e;
   for(let i=p;i<src.length;i++){ e = src[i]*k + e*(1-k); out[i] = e; }
   return out;
+}
+function fmt(p){
+  p = Number(p);
+  if(p >= 1000) return p.toLocaleString("en-US",{maximumFractionDigits:1});
+  if(p >= 100) return p.toFixed(2);
+  if(p >= 1) return p.toFixed(3);
+  return p.toFixed(5);
 }
 function avg(a){ return a.reduce((x,y)=>x+y,0)/a.length; }
 function atr(h, l, c, p=14){
@@ -664,7 +672,8 @@ async function scoreSym(sym){
   else if(funding!=null && funding<=-0.05) hits.push("T11 short sıx");
   if(spike && r4!=null && (r4>=70||r4<=30)) hits.push("T12 həcmli");
   const tg = t14signal(k4);
-  if(tg.state!=="YOXL") hits.push("T14 " + tg.state);
+  let plan = null;
+  if(tg.state!=="YOXL"){ hits.push("T14 " + tg.state); plan = {dir:tg.state, e:tg.entry, sl:tg.sl, tp1:tg.tp1, tp2:tg.tp2}; }
   const a4 = atr(h4,l4,c4,14);
   const ap = a4/price*100;
   const fz = findFVGs(k4);
@@ -718,10 +727,14 @@ async function scoreSym(sym){
   if(rp && ((rp.regime==="BULL"&&rp.score>=4)||(rp.regime==="BEAR"&&rp.score<=1))) hits.push("T31 RSIPro " + rp.score + "/5");
   const bf = bandFlow(k4);
   if(bf && bf.flipAgo<=3) hits.push("T32 BAND " + (bf.state===1?"BUY":"SELL"));
+  if(!plan && bf && bf.flipAgo<=3 && bf.entry!=null){
+    const up = bf.state===1;
+    plan = {dir:up?"BUY":"SELL", e:bf.entry, sl:up?bf.entry-2*a4:bf.entry+2*a4, tp1:bf.tps[0], tp2:bf.tps[1]};
+  }
   const bc = bosChoch(k4);
   if(bc && bc.event) hits.push("T33 " + bc.event);
   const t17x = (sym==="BTCUSDT"||sym==="ETHUSDT") ? 1 : 0;
-  return {sym, price, score: hits.length, max: 24+t17x+(isXau?1:0), hits};
+  return {sym, price, score: hits.length, max: 24+t17x+(isXau?1:0), hits, plan};
 }
 function render(items){
   const el = document.getElementById("list"); el.innerHTML="";
@@ -733,7 +746,8 @@ function render(items){
     const d = document.createElement("div"); d.className = "card";
     d.innerHTML = `<div class="row1"><span class="sym"><a class="slink" href="coin.html?symbol=${o.sym}">${o.sym}</a>${tag}</span>` +
       `<span class="score">${o.score}/${o.max}</span></div>` +
-      `<div class="hits">${o.hits.map(h=>`<span class="hit">${h}</span>`).join("")}</div>`;
+      `<div class="hits">${o.hits.map(h=>`<span class="hit">${h}</span>`).join("")}</div>` +
+      (o.plan ? `<div class="planline">${o.plan.dir} @ ${fmt(o.plan.e)} • SL ${fmt(o.plan.sl)} • TP1 ${fmt(o.plan.tp1)} • TP2 ${fmt(o.plan.tp2)}</div>` : "");
     el.appendChild(d);
   });
 }
