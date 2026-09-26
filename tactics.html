@@ -53,6 +53,19 @@
   .st.live { background: #F7B500 !important; color: #111 !important; }
   .st.plan { background: #1A212C !important; color: #8A94A6 !important; border-color: #2A3342 !important; }
 </style>
+<style>
+.tblwrap{overflow-x:auto;border:1px solid #232B38;border-radius:14px;background:#12161C;}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:520px;}
+thead th{text-align:left;font-size:11px;color:#8A94A6;text-transform:uppercase;letter-spacing:.6px;padding:10px;font-weight:700;}
+tbody td{padding:9px 10px;border-top:1px solid #1A212C;vertical-align:top;}
+tbody tr{transition:background .15s;}
+tbody tr:hover{background:#141B26;}
+.rule{color:#8A94A6;font-size:12px;margin-top:3px;line-height:1.5;}
+.rule small{color:#5B6675;}
+.mtag2{font-size:10px;font-weight:700;color:#F7B500;border:1px solid #F7B500;border-radius:8px;padding:2px 7px;white-space:nowrap;}
+button{transition:opacity .15s;}
+button:active{opacity:.7;}
+</style>
 </head>
 <body>
 <h1><span class="logo"></span>Taktikalar</h1>
@@ -65,7 +78,7 @@
   <a href="skor.html">Skor</a>
   <a href="fav.html">Sevimli</a>
 </div>
-<div id="list"></div>
+<div class="tblwrap"><table><thead><tr><th>ID</th><th>Taktika</th><th>Market</th><th>Status</th></tr></thead><tbody id="list"></tbody></table></div>
 <div class="foot">Yeni taktika üçün de — araşdırıb bura əlavə edirəm.<br>Data: Bybit public API. Tövsiyə deyil.</div>
 
 <script>
@@ -105,15 +118,12 @@ const T = [
  ["T34","Ichimoku full razılıq","HAMISI","Tenkan/Kijun/Senkou/Chikou 9/26/52","Bulud + TK + Chikou hamısı razıdırsa trend təsdiqi.",1],
  ["T35","Supertrend flip","HAMISI","ATR-14 band ±3, yaddaşlı","Təzə flip (≤3 şam) = trend dəyişimi siqnalı.",1]
 ];
-];
 const el = document.getElementById("list");
+let html = "";
 T.forEach(([id,name,mkt,par,rule,live])=>{
-  const d = document.createElement("div");
-  d.className = "card" + (live ? " live" : "");
-  d.innerHTML = `<div class="row1"><span class="tid">${id} • ${mkt}</span><span class="st ${live?"live":"plan"}">${live?"CANLI":"PLAN"}</span></div>` +
-    `<b class="name">${name}</b><p>${rule}</p><small>Parametr: ${par}</small>`;
-  el.appendChild(d);
+  html += `<tr><td class="tid">${id}</td><td><b>${name}</b><div class="rule">${rule}<br><small>Parametr: ${par}</small></div></td><td><span class="mtag2">${mkt}</span></td><td><span class="st ${live?"live":"plan"}">${live?"CANLI":"PLAN"}</span></td></tr>`;
 });
+el.innerHTML = html;
 </script>
 </body>
 </html>

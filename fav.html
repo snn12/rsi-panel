@@ -61,6 +61,17 @@
   .mtag { color: #F7B500 !important; border-color: #F7B500 !important; }
   .row1 .sym, .sym { color: #F2F5F0 !important; }
 </style>
+<style>
+.tblwrap{overflow-x:auto;border:1px solid #232B38;border-radius:14px;background:#12161C;}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:520px;}
+thead th{text-align:left;font-size:11px;color:#8A94A6;text-transform:uppercase;letter-spacing:.6px;padding:10px;font-weight:700;}
+tbody td{padding:9px 10px;border-top:1px solid #1A212C;vertical-align:top;font-variant-numeric:tabular-nums;}
+tbody tr.mainrow{transition:background .15s;}
+tbody tr.mainrow:hover{background:#141B26;}
+tr.morerow td{background:#0E1319;}
+button{transition:opacity .15s;}
+button:active{opacity:.7;}
+</style>
 </head>
 <body>
 <div class="brand">
@@ -178,30 +189,36 @@ async function loadOne(sym){
   return out;
 }
 function toggleMore(btn){
-  const box = btn.closest(".mwrap").querySelector(".morebox");
-  const open = box.style.display==="block";
-  box.style.display = open?"none":"block";
-  box.classList.toggle("open", !open);
+  const tr = btn.closest("tr");
+  const box = tr.nextElementSibling;
+  const open = box && box.style.display==="table-row";
+  if(box) box.style.display = open?"none":"table-row";
+  const inner = box ? box.querySelector(".morebox") : null;
+  if(inner) inner.classList.toggle("open", !open);
   btn.textContent = open?"More +":"More −";
 }
 function render(items){
   const el = document.getElementById("list"); el.innerHTML="";
-  if(!items.length){ el.innerHTML = `<div class="empty">Hələ sevimli yoxdur.<br>Home-da və ya Coin-də ★ bas.</div>`; return; }
+  if(!items.length){ el.innerHTML = `<div class="tblwrap"><table><thead><tr><th>Coin</th><th>Qiymət</th><th>1H</th><th>4H</th><th>Hökm</th><th></th></tr></thead><tbody><tr><td colspan="6"><div class="empty">Hələ sevimli yoxdur.<br>Home-da və ya Coin-də ★ bas.</div></td></tr></tbody></table></div>`; return; }
+  let html = `<div class="tblwrap"><table><thead><tr><th>Coin</th><th>Qiymət</th><th>1H</th><th>4H</th><th>Hökm</th><th></th></tr></thead><tbody>`;
   items.forEach(o=>{
-    const d=document.createElement("div"); d.className="mwrap";
     const r1=o.r["1H"], r4=o.r["4H"];
     const m = marketOf(o.sym);
     const tag = m==="crypto" ? "" : `<span class="mtag">${m==="stock"?"STOCK":"ƏMTƏƏ"}</span>`;
     const v = o.v;
     const vb = v ? `<span class="vbadge v-${v.verdict}">${v.verdict} ${v.al}-${v.sat}</span>` : "";
-    const mb = v ? `<div class="morebox">${v.list.map(x=>`<div class="mrow"><span>${x.id}</span><span class="md-${x.d}">${x.d==="NEYTRAL"?"GÖZLƏ":x.d}</span></div>`).join("")}<div class="mrow"><span></span><a class="slink" href="coin.html?symbol=${o.sym}" style="color:#4F46E5;font-weight:700;">Tam analiz →</a></div></div>` : "";
-    d.innerHTML =
-      `<div class="row"><div class="rid"><a class="slink" href="coin.html?symbol=${o.sym}">${o.sym}</a>${tag}<div class="rprice">${o.price!=null?fmt(o.price):"-"} ${vb} <button class="morebtn" onclick="toggleMore(this)">More +</button></div></div>`+
-      `<div class="rtf"><small>1H</small><b class="${cls(r1)}">${r1!=null?r1.toFixed(0):"-"}</b></div>`+
-      `<div class="rtf"><small>4H</small><b class="${cls(r4)}">${r4!=null?r4.toFixed(0):"-"}</b></div>`+
-      `<button class="rdel" onclick="unfav('${o.sym}')">★</button></div>`+mb;
-    el.appendChild(d);
+    const mb = v ? `<div class="morebox">${v.list.map(x=>`<div class="mrow"><span>${x.id}</span><span class="md-${x.d}">${x.d==="NEYTRAL"?"GÖZLƏ":x.d}</span></div>`).join("")}<div class="mrow"><span></span><a class="slink" href="coin.html?symbol=${o.sym}" style="color:#F7B500;font-weight:700;">Tam analiz →</a></div></div>` : "";
+    html += `<tr class="mainrow">`+
+      `<td class="sym"><a class="slink" href="coin.html?symbol=${o.sym}">${o.sym}</a>${tag}</td>`+
+      `<td class="num">${o.price!=null?fmt(o.price):"-"}</td>`+
+      `<td><span class="rsi ${cls(r1)}">${r1!=null?r1.toFixed(0):"-"}</span></td>`+
+      `<td><span class="rsi ${cls(r4)}">${r4!=null?r4.toFixed(0):"-"}</span></td>`+
+      `<td>${vb} <button class="morebtn" onclick="toggleMore(this)">More +</button></td>`+
+      `<td><button class="rdel" onclick="unfav('${o.sym}')">★</button></td></tr>`+
+      `<tr class="morerow" style="display:none"><td colspan="6">${mb}</td></tr>`;
   });
+  html += `</tbody></table></div>`;
+  el.innerHTML = html;
 }
 let runId = 0, timer = null, count = 60;
 async function refresh(manual){

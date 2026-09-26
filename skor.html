@@ -124,6 +124,19 @@
   .md-NEYTRAL { color: #5B6675; }
   .planline { background: #1A212C; color: #F2F5F0; }
 </style>
+<style>
+.tblwrap{overflow-x:auto;border:1px solid #232B38;border-radius:14px;background:#12161C;}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:480px;}
+thead th{text-align:left;font-size:11px;color:#8A94A6;text-transform:uppercase;letter-spacing:.6px;padding:10px;font-weight:700;}
+tbody td{padding:9px 10px;border-top:1px solid #1A212C;vertical-align:top;font-variant-numeric:tabular-nums;}
+tbody tr.mainrow{transition:background .15s;}
+tbody tr.mainrow:hover{background:#141B26;}
+tbody tr.mainrow.buy td:first-child{border-left:3px solid #16C784;}
+tbody tr.mainrow.sell td:first-child{border-left:3px solid #DC2626;}
+tr.morerow td{background:#0E1319;}
+button{transition:opacity .15s;}
+button:active{opacity:.7;}
+</style>
 </head>
 <body>
 <header class="topbar">
@@ -1051,10 +1064,12 @@ function renderMarquee(items){
 }
 let lastItems = [];
 function toggleMore(btn){
-  const box = btn.closest(".card").querySelector(".morebox");
-  const open = box.style.display==="block";
-  box.style.display = open?"none":"block";
-  box.classList.toggle("open", !open);
+  const tr = btn.closest("tr");
+  const box = tr.nextElementSibling;
+  const open = box && box.style.display==="table-row";
+  if(box) box.style.display = open?"none":"table-row";
+  const inner = box ? box.querySelector(".morebox") : null;
+  if(inner) inner.classList.toggle("open", !open);
   btn.textContent = open?"More +":"More −";
 }
 function render(items){
@@ -1062,20 +1077,25 @@ function render(items){
   renderMarquee(lastItems);
   const el = document.getElementById("list"); el.innerHTML="";
   const shown = lastItems.filter(o => o && selScore(o)>=thr).sort((a,b)=> selScore(b)-selScore(a));
-  if(!shown.length){ el.innerHTML = `<div class="empty">Bu həddi keçən yoxdur. Həddi azalt.</div>`; return; }
+  if(!shown.length){ el.innerHTML = `<div class="tblwrap"><table><thead><tr><th>Coin</th><th>Skor</th><th>Hökm</th></tr></thead><tbody><tr><td colspan="3"><div class="empty">Bu həddi keçən yoxdur. Həddi azalt.</div></td></tr></tbody></table></div>`; return; }
+  let html = `<div class="tblwrap"><table><thead><tr><th>Coin</th><th>Skor</th><th>Hökm</th></tr></thead><tbody>`;
   shown.forEach(o=>{
     const m = marketOf(o.sym);
     const tag = m==="crypto" ? "" : `<span class="mtag">${m==="stock"?"STOCK":"ƏMTƏƏ"}</span>`;
     const ss = selScore(o), sv = selVerdict(o);
-    const d = document.createElement("div"); d.className = "card";
-    d.innerHTML = `<div class="row1"><span class="sym"><a class="slink" href="coin.html?symbol=${o.sym}">${o.sym}</a>${tag}</span>` +
-      `<span class="score">${ss}/${SEL.size}</span></div>` +
-      `<div class="vrow"><span class="verdict v-${sv.v}">${sv.v} ${sv.al}-${sv.sat}</span><button class="morebtn" onclick="toggleMore(this)">More +</button></div>` +
+    const vc = sv.v==="BUY"?"buy":sv.v==="SELL"?"sell":"";
+    html += `<tr class="mainrow ${vc}">`+
+      `<td class="sym"><a class="slink" href="coin.html?symbol=${o.sym}">${o.sym}</a>${tag}</td>`+
+      `<td><span class="score">${ss}/${SEL.size}</span></td>`+
+      `<td><span class="verdict v-${sv.v}">${sv.v} ${sv.al}-${sv.sat}</span> <button class="morebtn" onclick="toggleMore(this)">More +</button></td></tr>`+
+      `<tr class="morerow" style="display:none"><td colspan="3">`+
       `<div class="hits">${o.hits.filter(h=>SEL.has(h.split(" ")[0])).map(h=>`<span class="hit">${h}</span>`).join("")}</div>` +
       (o.plan ? `<div class="planline">${o.plan.dir} @ ${fmt(o.plan.e)} • SL ${fmt(o.plan.sl)} • TP1 ${fmt(o.plan.tp1)} • TP2 ${fmt(o.plan.tp2)}</div>` : "") +
-      `<div class="morebox">${o.dirs.map(x=>`<div class="mrow"><span>${x.id}${SEL.has(x.id)?"":" •"}</span><span class="md-${x.d}">${x.d==="NEYTRAL"?"GÖZLƏ":x.d}</span></div>`).join("")}</div>`;
-    el.appendChild(d);
+      `<div class="morebox">${o.dirs.map(x=>`<div class="mrow"><span>${x.id}${SEL.has(x.id)?"":" •"}</span><span class="md-${x.d}">${x.d==="NEYTRAL"?"GÖZLƏ":x.d}</span></div>`).join("")}</div>`+
+      `</td></tr>`;
   });
+  html += `</tbody></table></div>`;
+  el.innerHTML = html;
 }
 let runId = 0, timer = null, count = 120;
 let SMT = null;

@@ -77,6 +77,20 @@
   .card.cold { border-color: #16C784 !important; }
   .row1 .sym, .sym { color: #F2F5F0 !important; }
 </style>
+<style>
+.tblwrap{overflow-x:auto;border:1px solid #232B38;border-radius:14px;background:#12161C;}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:520px;}
+thead th{text-align:left;font-size:11px;color:#8A94A6;text-transform:uppercase;letter-spacing:.6px;padding:10px;font-weight:700;}
+tbody td{padding:9px 10px;border-top:1px solid #1A212C;vertical-align:top;font-variant-numeric:tabular-nums;}
+tbody tr.mainrow{transition:background .15s;}
+tbody tr.mainrow:hover{background:#141B26;}
+tbody tr.mainrow.hot td:first-child{border-left:3px solid #EA3943;}
+tbody tr.mainrow.max td:first-child{border-left:3px solid #DC2626;}
+tbody tr.mainrow.cold td:first-child{border-left:3px solid #16C784;}
+tr.morerow td{background:#0E1319;}
+button{transition:opacity .15s;}
+button:active{opacity:.7;}
+</style>
 </head>
 <body>
 <div class="brand">
@@ -197,20 +211,23 @@ async function loadOne(sym){
   return out;
 }
 function toggleMore(btn){
-  const box = btn.closest(".row").querySelector(".morebox");
-  const open = box.style.display==="block";
-  box.style.display = open?"none":"block";
-  box.classList.toggle("open", !open);
+  const tr = btn.closest("tr");
+  const box = tr.nextElementSibling;
+  const open = box && box.style.display==="table-row";
+  if(box) box.style.display = open?"none":"table-row";
+  const inner = box ? box.querySelector(".morebox") : null;
+  if(inner) inner.classList.toggle("open", !open);
   btn.textContent = open?"More +":"More −";
 }
 function render(items){
   const el = document.getElementById("list"); el.innerHTML="";
   const hits = items.filter(o => Object.values(o.r).some(v => v!=null && (v>=HI || v<=LO)));
   if(!hits.length){
-    el.innerHTML = `<div class="empty">Hazırda 75+ / 20- siqnal yoxdur.<br>60 saniyədən bir avtomatik yoxlanılır.</div>`;
+    el.innerHTML = `<div class="tblwrap"><table><thead><tr><th>Coin</th><th>Qiymət</th><th>Siqnal</th><th>Hökm</th></tr></thead><tbody><tr><td colspan="4"><div class="empty">Hazırda 75+ / 20- siqnal yoxdur.<br>60 saniyədən bir avtomatik yoxlanılır.</div></td></tr></tbody></table></div>`;
     return;
   }
   const hotInfo = v => v>=87 ? ["max","EKSTREM"] : v>=81 ? ["vhot","ÇOX QIZMIŞ"] : ["hot","QIZMIŞ"];
+  let html = `<div class="tblwrap"><table><thead><tr><th>Coin</th><th>Qiymət</th><th>Siqnal</th><th>Hökm</th></tr></thead><tbody>`;
   hits.forEach(o=>{
     const tags = Object.entries(o.r)
       .filter(([k,v]) => v!=null && (v>=HI || v<=LO))
@@ -218,22 +235,24 @@ function render(items){
         if(v < HI) return `<span class="badge cold">${k} ${v.toFixed(0)} • SOYULMUŞ</span>`;
         const [c, t] = hotInfo(v);
         return `<span class="badge ${c}">${k} ${v.toFixed(0)} • ${t}</span>`;
-      }).join("");
+      }).join(" ");
     const vals = Object.values(o.r).filter(v => v!=null);
     const hasMax = vals.some(v => v>=87);
     const isHot = vals.some(v => v>=HI);
-    const d = document.createElement("div");
-    d.className = "row " + (hasMax ? "max" : isHot ? "hot" : "cold");
     const m = marketOf(o.sym);
     const tag = m==="crypto" ? "" : `<span class="mtag">${m==="stock"?"STOCK":"ƏMTƏƏ"}</span>`;
     const v = o.v;
     const vb = v ? `<span class="vbadge v-${v.verdict}">${v.verdict} ${v.al}-${v.sat}</span>` : "";
-    const mb = v ? `<div class="morebox">${v.list.map(x=>`<div class="mrow"><span>${x.id}</span><span class="md-${x.d}">${x.d==="NEYTRAL"?"GÖZLƏ":x.d}</span></div>`).join("")}<div class="mrow"><span></span><a class="slink" href="coin.html?symbol=${o.sym}" style="color:#4F46E5;font-weight:700;">Tam analiz →</a></div></div>` : "";
-    d.innerHTML = `<div class="row1"><span class="sym"><a class="slink" href="coin.html?symbol=${o.sym}">${o.sym}</a>${tag}</span>`+
-      `<span class="price">${o.price!=null?fmt(o.price):"-"}</span></div><div class="tags">${tags}</div>`+
-      `<div class="vline">${vb}<button class="morebtn" onclick="toggleMore(this)">More +</button></div>`+mb;
-    el.appendChild(d);
+    const mb = v ? `<div class="morebox">${v.list.map(x=>`<div class="mrow"><span>${x.id}</span><span class="md-${x.d}">${x.d==="NEYTRAL"?"GÖZLƏ":x.d}</span></div>`).join("")}<div class="mrow"><span></span><a class="slink" href="coin.html?symbol=${o.sym}" style="color:#F7B500;font-weight:700;">Tam analiz →</a></div></div>` : "";
+    html += `<tr class="mainrow ${hasMax?"max":isHot?"hot":"cold"}">`+
+      `<td class="sym"><a class="slink" href="coin.html?symbol=${o.sym}">${o.sym}</a>${tag}</td>`+
+      `<td class="num">${o.price!=null?fmt(o.price):"-"}</td>`+
+      `<td>${tags}</td>`+
+      `<td>${vb} <button class="morebtn" onclick="toggleMore(this)">More +</button></td></tr>`+
+      `<tr class="morerow" style="display:none"><td colspan="4">${mb}</td></tr>`;
   });
+  html += `</tbody></table></div>`;
+  el.innerHTML = html;
 }
 let runId = 0, timer = null, count = 60;
 async function refresh(manual){

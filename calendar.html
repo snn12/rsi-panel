@@ -54,6 +54,19 @@
   .card.past { opacity: .45; }
   .card.today { border-color: #F7B500 !important; }
 </style>
+<style>
+.tblwrap{overflow-x:auto;border:1px solid #232B38;border-radius:14px;background:#12161C;}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:420px;}
+thead th{text-align:left;font-size:11px;color:#8A94A6;text-transform:uppercase;letter-spacing:.6px;padding:10px;font-weight:700;}
+tbody td{padding:9px 10px;border-top:1px solid #1A212C;vertical-align:top;}
+tbody tr{transition:background .15s;}
+tbody tr:hover{background:#141B26;}
+tbody tr.past{opacity:.45;}
+tbody tr.today td{border-top:1px solid #F7B500;}
+.date small, td small{color:#8A94A6;}
+button{transition:opacity .15s;}
+button:active{opacity:.7;}
+</style>
 </head>
 <body>
 <h1><span class="logo"></span>Təqvim</h1>
@@ -85,21 +98,19 @@ function paint(){
   const now = new Date(); now.setHours(0,0,0,0);
   el.innerHTML = "";
   let n = 0;
+  let html = `<div class="tblwrap"><table><thead><tr><th>Tarix</th><th>Hadisə</th><th>Qaldı</th></tr></thead><tbody>`;
   ALL.forEach(e=>{
     if(FILTER && e.date < FILTER) return;
     n++;
     const d = new Date(e.date + "T00:00:00");
     const diff = Math.round((d - now)/86400000);
     const label = diff < 0 ? "keçib" : diff === 0 ? "BU GÜN" : diff === 1 ? "sabah" : diff + " gün";
-      const cls = diff < 0 ? "card past" : diff === 0 ? "card today" : "card";
-      const div = document.createElement("div");
-      div.className = cls;
-      div.innerHTML = `<div class="date"><b>${d.getDate()}</b><small>${MO[d.getMonth()]}</small></div>` +
-        `<div class="info"><b>${e.title}</b><small>${e.detail||""}</small></div>` +
-        `<div class="left">${label}</div>`;
-      el.appendChild(div);
-    });
-    if(!n) el.innerHTML = `<div class="card">Bu tarixdən sonra hadisə yoxdur.</div>`;
+    const cls = diff < 0 ? "past" : diff === 0 ? "today" : "";
+    html += `<tr class="${cls}"><td class="date"><b>${d.getDate()}</b> ${MO[d.getMonth()]}</td><td><b>${e.title}</b><br><small>${e.detail||""}</small></td><td class="left">${label}</td></tr>`;
+  });
+  html += `</tbody></table></div>`;
+  el.innerHTML = html;
+  if(!n) el.innerHTML = `<div class="tblwrap"><table><tbody><tr><td><div class="card">Bu tarixdən sonra hadisə yoxdur.</div></td></tr></tbody></table></div>`;
 }
 async function main(){
   const el = document.getElementById("list");

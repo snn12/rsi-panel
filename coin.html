@@ -92,6 +92,16 @@
   body>:not(.card){grid-column:1/-1;}
 }
 </style>
+<style>
+.tblwrap{overflow-x:auto;border:1px solid #232B38;border-radius:12px;background:#12161C;margin-top:8px;}
+table.tact{width:100%;border-collapse:collapse;font-size:14px;}
+table.tact thead th{text-align:left;font-size:11px;color:#8A94A6;text-transform:uppercase;letter-spacing:.6px;padding:9px 10px;}
+table.tact tbody td{padding:8px 10px;border-top:1px solid #1A212C;vertical-align:top;}
+table.tact tbody tr{transition:background .15s;}
+table.tact tbody tr:hover{background:#141B26;}
+button{transition:opacity .15s;}
+button:active{opacity:.7;}
+</style>
 </head>
 <body>
 <a class="back" href="index.html">← Home</a>
@@ -181,7 +191,7 @@
 
 <div class="card">
   <h3>İŞƏ DÜŞƏN TAKTİKALAR</h3>
-  <div id="tacts"></div>
+  <div class="tblwrap"><table class="tact"><thead><tr><th>Taktik</th><th>Nəticə</th></tr></thead><tbody id="tacts"></tbody></table></div>
 </div>
 
 <div class="card analysis">
@@ -1038,7 +1048,7 @@ async function main(){
   const trow = (id,txt) => {
     const d = tdir(id);
     const b = !d ? "" : `<span class="db db-${d}">${d==="GOZLE"?"GÖZLƏ":d}</span>`;
-    return `<div class="trow"><span class="tid">${id}${b}</span><span>${txt}</span></div>`;
+    return `<tr><td class="tid">${id}${b}</td><td>${txt}</td></tr>`;
   };
   const kd = await fetchKlines(SYM,"D",30);
   const dsw = dailySweep(kd);
