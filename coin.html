@@ -47,6 +47,10 @@
   .price { color: #0F1D38; }
   .krow, .trow { border-color: #EDF1F7; }
   .tid { color: #4F46E5; }
+  .db { display: inline-block; font-size: 10px; font-weight: 700; border-radius: 8px; padding: 1px 7px; margin-left: 6px; vertical-align: 1px; }
+  .db-AL { background: #16A34A; color: #fff; }
+  .db-SAT { background: #DC2626; color: #fff; }
+  .db-GOZLE { background: #F1F5F9; color: #64748B; border: 1px solid #E2E8F0; }
   .mtag { color: #4F46E5; border-color: #4F46E5; }
   .up { color: #16A34A; } .down { color: #DC2626; } .flat { color: #64748B; }
   .foot { color: #64748B; border-color: #E2E8F0; }
@@ -803,7 +807,69 @@ async function main(){
       ? `Dəstək ${fmt(sup)} üzərində • Hədəf ${fmt(res)} (${t1p>=0?"+":""}${t1p.toFixed(1)}%) / ${fmt(tgt2)} (${t2p>=0?"+":""}${t2p.toFixed(1)}%) • ${bull ? "bullish struktur → 1 XAL" : "ehtiyatlı (RSI<50) → 0 xal"}`
       : `Dəstək ${fmt(sup)} qırıldı — setup pozuldu → 0 xal`;
   }
-  const trow = (id,txt) => `<div class="trow"><span class="tid">${id}</span><span>${txt}</span></div>`;
+  function tdir(id){
+    switch(id){
+      case "T1":
+        if(r4!=null && r4>=75) return "SAT";
+        if(r4!=null && r4<=20) return "AL";
+        if(r1!=null && r1>=75) return "SAT";
+        if(r1!=null && r1<=20) return "AL";
+        return "GOZLE";
+      case "T2": return r4==null?"GOZLE":r4>55?"AL":r4<45?"SAT":"GOZLE";
+      case "T4": return price>e50?"AL":price<e50?"SAT":"GOZLE";
+      case "T6": return hist>0?"AL":hist<0?"SAT":"GOZLE";
+      case "T7": return pctB>0.8?"SAT":pctB<0.2?"AL":"GOZLE";
+      case "T9": return null;
+      case "T11":
+        if(funding==null) return "GOZLE";
+        return funding>=0.05?"SAT":funding<=-0.05?"AL":"GOZLE";
+      case "T13":
+        if(price<sup) return "SAT";
+        return (r4!=null&&r4>=50)?"AL":"GOZLE";
+      case "T14": return tg.state==="BUY"?"AL":tg.state==="SELL"?"SAT":"GOZLE";
+      case "T15":
+        if(nearB&&!nearS) return "AL";
+        if(nearS&&!nearB) return "SAT";
+        return "GOZLE";
+      case "T16": {
+        if(sw) return sw.side===-1?"SAT":"AL";
+        const inv = fz.filter(z=>z.inv).slice(-3).find(z=> z.dir===1 ? (price<z.bot&&(z.bot-price)/price*100<=2*ap) : (price>z.top&&(price-z.top)/price*100<=2*ap));
+        if(!inv) return "GOZLE";
+        return inv.dir===1?"SAT":"AL";
+      }
+      case "T17":
+        if(smtTxt.indexOf("Bullish")>=0) return "AL";
+        if(smtTxt.indexOf("Bearish")>=0) return "SAT";
+        return "GOZLE";
+      case "T19":
+        if(!dsw) return "GOZLE";
+        return dsw.dir===1?"AL":"SAT";
+      case "T20":
+        if(s1 && s1.dir!==0 && s1.fresh && s4 && s4.dir===s1.dir && s1.score>=55) return s1.dir===1?"AL":"SAT";
+        return "GOZLE";
+      case "T21": return kSig===1?"AL":kSig===-1?"SAT":"GOZLE";
+      case "T22": return (uma&&uma.power)?(uma.bias===1?"AL":"SAT"):"GOZLE";
+      case "T23": return (ote&&ote.inside)?(ote.dir===1?"AL":"SAT"):"GOZLE";
+      case "T24":
+        if(t24txt.indexOf("Bullish")===0) return "AL";
+        if(t24txt.indexOf("Bearish")===0) return "SAT";
+        return "GOZLE";
+      case "T25": return (t25&&t25.dir!==0)?(t25.dir===1?"AL":"SAT"):"GOZLE";
+      case "T26": return null;
+      case "T27": return null;
+      case "T29": return (vp&&((vp.state===1&&vp.fresh&&!vp.ranging)||(vp.state===-1&&vp.fresh)))?(vp.state===1?"AL":"SAT"):"GOZLE";
+      case "T30": return (rm&&rm.reg!==0&&rm.fresh)?(rm.reg===1?"AL":"SAT"):"GOZLE";
+      case "T31": return (rp&&((rp.regime==="BULL"&&rp.score>=4)||(rp.regime==="BEAR"&&rp.score<=1)))?(rp.regime==="BULL"?"AL":"SAT"):"GOZLE";
+      case "T32": return (bf&&bf.flipAgo<=3)?(bf.state===1?"AL":"SAT"):"GOZLE";
+      case "T33": return (bc&&bc.event)?(bc.event.indexOf("+")>=0?"AL":"SAT"):"GOZLE";
+      default: return "GOZLE";
+    }
+  }
+  const trow = (id,txt) => {
+    const d = tdir(id);
+    const b = !d ? "" : `<span class="db db-${d}">${d==="GOZLE"?"GÖZLƏ":d}</span>`;
+    return `<div class="trow"><span class="tid">${id}${b}</span><span>${txt}</span></div>`;
+  };
   const kd = await fetchKlines(SYM,"D",30);
   const dsw = dailySweep(kd);
   let smtTxt = "— (yalnız BTC/ETH)";
