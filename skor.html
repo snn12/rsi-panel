@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Skor • RSI Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; }
   body { margin: 0 auto; max-width: 640px; font-family: -apple-system, "Segoe UI", Arial, sans-serif; background: #ffffff; color: #1a2b23; padding: 16px 14px 28px; }
@@ -65,11 +67,79 @@
   .empty { background: #fff; border-color: #E2E8F0; color: #64748B; }
   .foot { color: #64748B; border-color: #E2E8F0; }
   .logo { background: #4F46E5; }
+  body { margin: 0; max-width: none; padding: 0; font-family: Inter, -apple-system, "Segoe UI", Arial, sans-serif; background: #0B0E11; color: #F2F5F0; }
+  .wrap { margin: 0 auto; max-width: 900px; padding: 0 12px 28px; }
+  header.topbar { position: sticky; top: 0; z-index: 50; display: flex; align-items: center; gap: 10px; background: #0B0E11; border-bottom: 2px solid #F7B500; padding: 10px 12px; }
+  #burger { background: transparent; border: 1px solid #2A3342; border-radius: 10px; color: #F7B500; font-size: 20px; padding: 4px 11px; font-family: inherit; }
+  #burger:active { opacity: .7; }
+  .brand { font-weight: 800; font-size: 18px; }
+  .brand b { color: #F7B500; }
+  .drawer { position: fixed; top: 0; left: -260px; width: 240px; height: 100%; background: #12161C; border-right: 1px solid #232B38; z-index: 100; transition: left .2s; padding: 16px 12px; display: block; }
+  .drawer.open { left: 0; }
+  .drawer h3 { margin: 4px 4px 10px; font-size: 13px; color: #8A94A6; text-transform: uppercase; letter-spacing: 1px; }
+  .drawer a { display: block; padding: 11px 12px; border-radius: 10px; color: #F2F5F0; text-decoration: none; font-size: 15px; font-weight: 600; margin-bottom: 4px; background: transparent; border: 0; }
+  .drawer a.on { background: #F7B500; color: #111; }
+  div.nav { display: none; }
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 90; display: none; }
+  .scrim.open { display: block; }
+  div.nav { display: none; }
+  .marquee { overflow: hidden; white-space: nowrap; background: #12161C; border-bottom: 1px solid #232B38; }
+  .mtrack { display: inline-block; padding: 7px 0; animation: slide 40s linear infinite; font-size: 13px; font-variant-numeric: tabular-nums; }
+  @keyframes slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .mq { display: inline-block; margin: 0 14px; }
+  .mq b { color: #F2F5F0; }
+  .up { color: #16C784; } .down { color: #EA3943; } .flat { color: #8A94A6; }
+  .tpanel { background: #12161C; border: 1px solid #232B38; border-radius: 12px; padding: 10px 12px; margin: 8px 0; }
+  .tpanel summary { font-weight: 700; font-size: 14px; cursor: pointer; }
+  #tsel { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .tck { font-size: 12px; background: #1A212C; border-radius: 8px; padding: 4px 8px; display: flex; gap: 5px; align-items: center; }
+  .tck input { accent-color: #F7B500; }
+  .card { background: #12161C; border-color: #232B38; box-shadow: none; }
+  .row1 { display: flex; justify-content: space-between; align-items: center; }
+  .sym { color: #F2F5F0; }
+  a.slink { color: #F2F5F0; }
+  a.slink:active { color: #F7B500; }
+  .score { background: #F7B500; color: #111; }
+  .hits { color: #F2F5F0; }
+  .hit { background: #1A212C; border-color: #2A3342; color: #F2F5F0; }
+  .mtag { color: #F7B500; border-color: #F7B500; }
+  .chips .chip, .chip { background: #12161C; border-color: #2A3342; color: #F2F5F0; font-family: inherit; }
+  .chip.on { background: #F7B500 !important; border-color: #F7B500 !important; color: #111 !important; }
+  #status { background: #12161C; border-color: #232B38; color: #8A94A6; }
+  .dot { background: #16C784; }
+  button.ghost { background: #12161C; border-color: #2A3342; color: #F2F5F0; font-family: inherit; }
+  .bar2 input { background: #12161C; border-color: #2A3342; color: #F2F5F0; font-family: inherit; }
+  .empty { background: #12161C; border-color: #232B38; color: #8A94A6; }
+  .foot { color: #5B6675; border-color: #232B38; }
+  .v-BUY { background: #16C784; color: #04120B; }
+  .v-SELL { background: #EA3943; color: #fff; }
+  .v-NEYTRAL { background: #1A212C; color: #8A94A6; border-color: #2A3342; }
+  .morebtn { border-color: #2A3342; background: #12161C; color: #F7B500; font-family: inherit; }
+  .morebox { border-color: #232B38; }
+  .mrow { color: #F2F5F0; }
+  .md-AL { color: #16C784; }
+  .md-SAT { color: #EA3943; }
+  .md-NEYTRAL { color: #5B6675; }
+  .planline { background: #1A212C; color: #F2F5F0; }
 </style>
 </head>
 <body>
-<h1><span class="logo"></span>Skor</h1>
-<div class="sub">Hər taktika 1 xal • Keçən taktikalar hamısı görünür</div>
+<header class="topbar">
+  <button id="burger" onclick="toggleDrawer()">☰</button>
+  <div class="brand">RSI <b>Panel</b></div>
+</header>
+<nav class="drawer" id="drawer">
+  <h3>Bölmələr</h3>
+  <a href="index.html">Home</a>
+  <a href="signals.html">Siqnallar</a>
+  <a href="calendar.html">Təqvim</a>
+  <a href="tactics.html">Taktikalar</a>
+  <a href="skor.html" class="on">Skor</a>
+  <a href="fav.html">Sevimli</a>
+</nav>
+<div class="scrim" id="scrim" onclick="toggleDrawer()"></div>
+<div class="marquee"><div class="mtrack" id="mtrack"></div></div>
+<div class="wrap">
 <div class="nav">
   <a href="index.html">Home</a>
   <a href="signals.html">Siqnallar</a>
@@ -88,6 +158,10 @@
   <input id="thrInp" type="number" min="0" max="30" placeholder="Öz həddin: məs 7">
   <button class="ghost" id="thrBtn" onclick="setThrCustom()">Tətbiq et</button>
 </div>
+<details class="tpanel" id="tpanel">
+  <summary>Taktikalar (<span id="tsel-n"></span>) — hesaba qat</summary>
+  <div id="tsel"></div>
+</details>
 <div id="status"><span class="dot"></span>Yüklənir...</div>
 <button class="ghost" onclick="refresh(true)">Yenilə</button>
 <div style="height:10px"></div>
@@ -939,6 +1013,41 @@ async function scoreSym(sym){
   const t17x = (sym==="BTCUSDT"||sym==="ETHUSDT") ? 1 : 0;
   return {sym, price, score: hits.length, max: 31+t17x+(isXau?1:0), hits, plan, dirs, verdict, nAl, nSat};
 }
+function toggleDrawer(){
+  document.getElementById("drawer").classList.toggle("open");
+  document.getElementById("scrim").classList.toggle("open");
+}
+const TACTS = [["T1","RSI ekstrem"],["T2","RSI zona"],["T4","EMA trend"],["T6","MACD"],["T7","Bollinger"],["T11","Funding"],["T12","Həcm"],["T13","XAU"],["T14","ALQO"],["T15","FVG"],["T16","Sweep"],["T17","SMT"],["T19","Daily"],["T20","SSL"],["T21","Kernel"],["T22","UMA"],["T23","OTE"],["T24","OB"],["T25","MACD PB"],["T26","Retest"],["T27","Link"],["T29","VPM"],["T30","RMS"],["T31","RSIPro"],["T32","Band"],["T33","BOS"],["T3","Div"],["T5","Cross"],["T8","Squeeze"],["T10","Donchian"],["T18","Turtle"],["T34","Ichi"],["T35","Super"]];
+let SEL = new Set();
+try{ const s = JSON.parse(localStorage.getItem("rsi_tsel")); if(Array.isArray(s)&&s.length) SEL = new Set(s); }catch(e){}
+if(SEL.size===0) SEL = new Set(TACTS.map(t=>t[0]));
+function buildTsel(){
+  const el = document.getElementById("tsel");
+  el.innerHTML = TACTS.map(([id,nm])=>`<label class="tck"><input type="checkbox" data-t="${id}" ${SEL.has(id)?"checked":""}> ${id} ${nm}</label>`).join("");
+  document.getElementById("tsel-n").textContent = SEL.size + "/" + TACTS.length;
+  el.querySelectorAll("input").forEach(c=>c.addEventListener("change",()=>{
+    if(c.checked) SEL.add(c.dataset.t); else SEL.delete(c.dataset.t);
+    try{localStorage.setItem("rsi_tsel",JSON.stringify([...SEL]));}catch(e){}
+    document.getElementById("tsel-n").textContent = SEL.size + "/" + TACTS.length;
+    render(lastItems);
+  }));
+}
+function selScore(o){ return o.hits.filter(h=>SEL.has(h.split(" ")[0])).length; }
+function selVerdict(o){
+  const ds = o.dirs.filter(x=>SEL.has(x.id));
+  const al = ds.filter(x=>x.d==="AL").length, sat = ds.filter(x=>x.d==="SAT").length;
+  return {al, sat, v: al-sat>=3?"BUY":sat-al>=3?"SELL":"NEYTRAL"};
+}
+function renderMarquee(items){
+  const top = (items||[]).slice(0,30);
+  const one = top.map(o=>{
+    const c = o.verdict==="BUY"?"up":o.verdict==="SELL"?"down":"flat";
+    return `<span class="mq"><b>${o.sym}</b> <span class="${c}">${o.score}/${o.max}</span></span>`;
+  }).join("");
+  const mt = document.getElementById("mtrack");
+  if(mt) mt.innerHTML = one + one;
+}
+let lastItems = [];
 function toggleMore(btn){
   const box = btn.closest(".card").querySelector(".morebox");
   const open = box.style.display==="block";
@@ -946,19 +1055,22 @@ function toggleMore(btn){
   btn.textContent = open?"More +":"More −";
 }
 function render(items){
+  lastItems = items || [];
+  renderMarquee(lastItems);
   const el = document.getElementById("list"); el.innerHTML="";
-  const shown = items.filter(o => o && o.score>=thr).sort((a,b)=> b.score-a.score);
+  const shown = lastItems.filter(o => o && selScore(o)>=thr).sort((a,b)=> selScore(b)-selScore(a));
   if(!shown.length){ el.innerHTML = `<div class="empty">Bu həddi keçən yoxdur. Həddi azalt.</div>`; return; }
   shown.forEach(o=>{
     const m = marketOf(o.sym);
     const tag = m==="crypto" ? "" : `<span class="mtag">${m==="stock"?"STOCK":"ƏMTƏƏ"}</span>`;
+    const ss = selScore(o), sv = selVerdict(o);
     const d = document.createElement("div"); d.className = "card";
     d.innerHTML = `<div class="row1"><span class="sym"><a class="slink" href="coin.html?symbol=${o.sym}">${o.sym}</a>${tag}</span>` +
-      `<span class="score">${o.score}/${o.max}</span></div>` +
-      `<div class="vrow"><span class="verdict v-${o.verdict}">${o.verdict} ${o.nAl}-${o.nSat}</span><button class="morebtn" onclick="toggleMore(this)">More +</button></div>` +
-      `<div class="hits">${o.hits.map(h=>`<span class="hit">${h}</span>`).join("")}</div>` +
+      `<span class="score">${ss}/${SEL.size}</span></div>` +
+      `<div class="vrow"><span class="verdict v-${sv.v}">${sv.v} ${sv.al}-${sv.sat}</span><button class="morebtn" onclick="toggleMore(this)">More +</button></div>` +
+      `<div class="hits">${o.hits.filter(h=>SEL.has(h.split(" ")[0])).map(h=>`<span class="hit">${h}</span>`).join("")}</div>` +
       (o.plan ? `<div class="planline">${o.plan.dir} @ ${fmt(o.plan.e)} • SL ${fmt(o.plan.sl)} • TP1 ${fmt(o.plan.tp1)} • TP2 ${fmt(o.plan.tp2)}</div>` : "") +
-      `<div class="morebox">${o.dirs.map(x=>`<div class="mrow"><span>${x.id}</span><span class="md-${x.d}">${x.d==="NEYTRAL"?"GÖZLƏ":x.d}</span></div>`).join("")}</div>`;
+      `<div class="morebox">${o.dirs.map(x=>`<div class="mrow"><span>${x.id}${SEL.has(x.id)?"":" •"}</span><span class="md-${x.d}">${x.d==="NEYTRAL"?"GÖZLƏ":x.d}</span></div>`).join("")}</div>`;
     el.appendChild(d);
   });
 }
@@ -1001,8 +1113,10 @@ function setThrCustom(){
 function syncThr(){ document.querySelectorAll("#thr .chip").forEach(b => b.classList.toggle("on", Number(b.dataset.t)===thr)); }
 function setThr(t){ thr = t; try{ localStorage.setItem("rsi_thr", String(t)); }catch(e){} syncThr(); refresh(true); }
 document.querySelectorAll("#thr .chip").forEach(b => b.addEventListener("click", () => setThr(Number(b.dataset.t))));
+buildTsel();
 syncThr();
 refresh(false);
 </script>
+</div>
 </body>
 </html>

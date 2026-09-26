@@ -4,89 +4,140 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RSI Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; }
-  body { margin: 0 auto; max-width: 640px; font-family: -apple-system, "Segoe UI", Arial, sans-serif; background: #EDF1F7; color: #0F1D38; padding: 12px 12px 28px; }
-  .brand { background: linear-gradient(135deg, #0E1B3D, #2B4ACB); border-radius: 16px; padding: 14px; color: #fff; margin-bottom: 10px; }
-  .brand-row { display: flex; align-items: center; gap: 10px; }
-  .logo2 { width: 14px; height: 14px; border-radius: 4px; background: #BEF264; flex-shrink: 0; }
-  .brand-t { font-size: 19px; font-weight: 700; }
-  .brand-s { font-size: 12px; opacity: .75; margin-top: 2px; }
-  .nav { display: flex; gap: 6px; margin: 10px 0; background: #fff; border: 1px solid #E2E8F0; border-radius: 14px; padding: 5px; }
-  .nav a { flex: 1; text-align: center; padding: 9px 2px; border-radius: 10px; color: #0F1D38; text-decoration: none; font-size: 12px; font-weight: 600; }
-  .nav a.on { background: #4F46E5; color: #fff; }
-  .chips { display: flex; gap: 6px; margin: 2px 0 8px; }
-  .chip { flex: 1; padding: 8px 2px; border-radius: 20px; border: 1px solid #E2E8F0; background: #fff; color: #0F1D38; font-size: 12px; font-weight: 600; }
-  .chip.on { background: #0F1D38; border-color: #0F1D38; color: #fff; }
-  .bar { display: flex; gap: 8px; margin: 8px 0 10px; }
-  input { flex: 1; min-width: 0; padding: 10px 12px; border-radius: 12px; border: 1px solid #E2E8F0; background: #fff; color: #0F1D38; font-size: 15px; }
-  input:focus { outline: none; border-color: #4F46E5; }
-  button.act { padding: 10px 14px; border-radius: 12px; border: 0; background: #4F46E5; color: #fff; font-size: 14px; font-weight: 700; white-space: nowrap; }
-  button.ghost { padding: 10px 14px; border-radius: 12px; background: #fff; border: 1px solid #E2E8F0; color: #0F1D38; font-size: 14px; font-weight: 600; white-space: nowrap; }
-  button:active { opacity: .7; }
-  #status { display: inline-block; font-size: 12px; color: #64748B; margin: 2px 0 8px; background: #fff; border: 1px solid #E2E8F0; border-radius: 20px; padding: 6px 12px; }
-  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #4F46E5; margin-right: 6px; }
-  .row { display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid #E2E8F0; border-radius: 14px; padding: 10px 8px 10px 12px; margin-bottom: 8px; box-shadow: 0 1px 4px rgba(15,29,56,.06); }
-  .rid { flex: 1; min-width: 0; font-weight: 700; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  a.slink { color: inherit; text-decoration: none; }
-  .mtag { font-size: 9px; font-weight: 700; color: #4F46E5; border: 1px solid #4F46E5; border-radius: 8px; padding: 1px 6px; vertical-align: 2px; margin-left: 4px; }
-  .rprice { font-size: 12px; color: #64748B; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
-  .rtf { min-width: 62px; text-align: center; background: #F1F5F9; border-radius: 10px; padding: 5px 4px; }
-  .rtf small { font-size: 10px; color: #64748B; display: block; font-weight: 600; }
-  .rtf b { font-size: 16px; font-variant-numeric: tabular-nums; }
-  .rdel { background: transparent; border: 0; color: #CBD5E1; font-size: 18px; padding: 2px 6px; }
-  .fav { color: #CBD5E1 !important; font-size: 16px !important; }
-  .fav.on { color: #EAB308 !important; }
-  .ob { color: #DC2626; } .hot { color: #EA8600; } .ok { color: #94A3B8; } .cheap { color: #4F46E5; } .os { color: #16A34A; }
-  .vbadge { font-size: 10px; font-weight: 700; border-radius: 8px; padding: 2px 8px; }
-  .v-BUY { background: #16A34A; color: #fff; }
-  .v-SELL { background: #DC2626; color: #fff; }
-  .v-NEYTRAL { background: #F1F5F9; color: #64748B; }
-  .morebtn { background: transparent; border: 0; color: #4F46E5; font-size: 12px; font-weight: 700; padding: 2px 6px; }
-  .morebox { display: none; background: #fff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 8px 12px; margin: -4px 0 8px; }
+  body { margin: 0; font-family: Inter, -apple-system, "Segoe UI", Arial, sans-serif; background: #0B0E11; color: #F2F5F0; }
+  .wrap { margin: 0 auto; max-width: 900px; padding: 0 12px 28px; }
+  header.topbar { position: sticky; top: 0; z-index: 50; display: flex; align-items: center; gap: 10px; background: #0B0E11; border-bottom: 2px solid #F7B500; padding: 10px 12px; }
+  #burger { background: transparent; border: 1px solid #2A3342; border-radius: 10px; color: #F7B500; font-size: 20px; padding: 4px 11px; }
+  #burger:active { opacity: .7; }
+  .brand { font-weight: 800; font-size: 18px; letter-spacing: .3px; }
+  .brand b { color: #F7B500; }
+  .drawer { position: fixed; top: 0; left: -260px; width: 240px; height: 100%; background: #12161C; border-right: 1px solid #232B38; z-index: 100; transition: left .2s; padding: 16px 12px; }
+  .drawer.open { left: 0; }
+  .drawer h3 { margin: 4px 4px 10px; font-size: 13px; color: #8A94A6; text-transform: uppercase; letter-spacing: 1px; }
+  .drawer a { display: block; padding: 11px 12px; border-radius: 10px; color: #F2F5F0; text-decoration: none; font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .drawer a.on { background: #F7B500; color: #111; }
+  .drawer a:active { opacity: .8; }
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 90; display: none; }
+  .scrim.open { display: block; }
+  .marquee { overflow: hidden; white-space: nowrap; background: #12161C; border-bottom: 1px solid #232B38; }
+  .mtrack { display: inline-block; padding: 7px 0; animation: slide 40s linear infinite; font-size: 13px; font-variant-numeric: tabular-nums; }
+  @keyframes slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .mq { display: inline-block; margin: 0 14px; }
+  .mq b { color: #F2F5F0; }
+  .up { color: #16C784; } .down { color: #EA3943; } .flat { color: #8A94A6; }
+  .toolbar { padding: 10px 0 4px; display: flex; gap: 8px; flex-wrap: wrap; }
+  #search { flex: 1; min-width: 150px; padding: 10px 12px; border-radius: 12px; border: 1px solid #2A3342; background: #12161C; color: #F2F5F0; font-size: 15px; font-family: inherit; }
+  #search:focus { outline: none; border-color: #F7B500; }
+  .chips { display: flex; gap: 6px; padding: 6px 0; flex-wrap: wrap; }
+  .chip { padding: 7px 12px; border-radius: 20px; border: 1px solid #2A3342; background: #12161C; color: #F2F5F0; font-size: 13px; font-weight: 600; font-family: inherit; }
+  .chip.on { background: #F7B500; border-color: #F7B500; color: #111; }
+  #status { font-size: 12px; color: #8A94A6; margin: 6px 0; }
+  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #16C784; margin-right: 6px; }
+  .bar { display: flex; gap: 8px; margin: 8px 0; }
+  #add { flex: 1; min-width: 0; padding: 10px 12px; border-radius: 12px; border: 1px solid #2A3342; background: #12161C; color: #F2F5F0; font-size: 15px; font-family: inherit; }
+  #add:focus { outline: none; border-color: #F7B500; }
+  button.act { padding: 10px 14px; border-radius: 12px; border: 0; background: #16C784; color: #04120B; font-size: 14px; font-weight: 800; font-family: inherit; white-space: nowrap; }
+  button.ghost { padding: 10px 14px; border-radius: 12px; background: #12161C; border: 1px solid #2A3342; color: #F2F5F0; font-size: 14px; font-weight: 600; font-family: inherit; white-space: nowrap; }
+  button:active { opacity: .75; }
+  .tblwrap { overflow-x: auto; border: 1px solid #232B38; border-radius: 14px; background: #12161C; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 560px; }
+  thead th { text-align: left; font-size: 11px; color: #8A94A6; text-transform: uppercase; letter-spacing: .6px; padding: 10px 10px; border-bottom: 1px solid #232B38; position: sticky; top: 0; background: #12161C; }
+  tbody td { padding: 9px 10px; border-bottom: 1px solid #1A212C; font-variant-numeric: tabular-nums; }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.sym { font-weight: 700; }
+  a.slink { color: #F2F5F0; text-decoration: none; }
+  a.slink:active { color: #F7B500; }
+  .mtag { font-size: 9px; font-weight: 700; color: #F7B500; border: 1px solid #F7B500; border-radius: 8px; padding: 1px 6px; vertical-align: 2px; margin-left: 4px; }
+  td.num { font-weight: 700; }
+  .rsi { display: inline-block; min-width: 40px; text-align: center; background: #1A212C; border-radius: 8px; padding: 3px 6px; font-weight: 700; }
+  .ob { color: #EA3943; } .hot { color: #F7B500; } .ok { color: #8A94A6; } .cheap { color: #16C784; } .os { color: #16C784; }
+  .vbadge { font-size: 10px; font-weight: 800; border-radius: 8px; padding: 3px 8px; white-space: nowrap; }
+  .v-BUY { background: #16C784; color: #04120B; }
+  .v-SELL { background: #EA3943; color: #fff; }
+  .v-NEYTRAL { background: #1A212C; color: #8A94A6; }
+  .iconbtn { background: transparent; border: 0; font-size: 17px; padding: 2px 5px; color: #5B6675; }
+  .fav { color: #5B6675 !important; }
+  .fav.on { color: #F7B500 !important; }
+  .del { color: #EA3943; opacity: .55; }
+  .morebtn { background: transparent; border: 0; color: #F7B500; font-size: 12px; font-weight: 700; padding: 2px 4px; font-family: inherit; }
+  tr.morerow td { background: #0E1319; }
+  .morebox { display: none; }
   .mrow { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; }
-  .md-AL { color: #16A34A; font-weight: 700; }
-  .md-SAT { color: #DC2626; font-weight: 700; }
-  .md-NEYTRAL { color: #94A3B8; }
-  .empty { background: #fff; border: 1px solid #E2E8F0; border-radius: 14px; padding: 22px; text-align: center; color: #64748B; }
-  .foot { color: #64748B; font-size: 12px; margin-top: 14px; line-height: 1.6; text-align: center; }
+  .md-AL { color: #16C784; font-weight: 700; }
+  .md-SAT { color: #EA3943; font-weight: 700; }
+  .md-NEYTRAL { color: #5B6675; }
+  .empty { padding: 24px; text-align: center; color: #8A94A6; }
+  .foot { color: #5B6675; font-size: 12px; margin-top: 14px; line-height: 1.6; text-align: center; }
+  .lightbox { position: fixed; inset: 0; z-index: 200; display: none; align-items: flex-end; justify-content: center; }
+  .lightbox.open { display: flex; }
+  .lb-scrim { position: absolute; inset: 0; background: rgba(0,0,0,.65); }
+  .lb-card { position: relative; width: 100%; max-width: 560px; max-height: 85%; overflow-y: auto; background: #12161C; border: 1px solid #2A3342; border-bottom: 0; border-radius: 18px 18px 0 0; padding: 16px 16px 24px; }
+  .lb-x { float: right; background: transparent; border: 0; color: #8A94A6; font-size: 20px; padding: 0 4px; }
+  .lb-price { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; margin: 4px 0; }
+  .krow { display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid #1A212C; font-size: 14px; }
+  .krow:first-of-type { border-top: 0; }
+  .krow span:last-child { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .lb-go { display: block; text-align: center; margin-top: 12px; padding: 12px; border-radius: 12px; background: #F7B500; color: #111; font-weight: 800; text-decoration: none; }
 </style>
 </head>
 <body>
-<div class="brand">
-  <div class="brand-row">
-    <span class="logo2"></span>
-    <div>
-      <div class="brand-t">RSI Panel</div>
-      <div class="brand-s">Bybit canlı • RSI-14 • 1H / 4H</div>
-    </div>
-  </div>
-</div>
-<div class="nav">
+<header class="topbar">
+  <button id="burger" onclick="toggleDrawer()">☰</button>
+  <div class="brand">RSI <b>Panel</b></div>
+</header>
+<nav class="drawer" id="drawer">
+  <h3>Bölmələr</h3>
   <a href="index.html" class="on">Home</a>
   <a href="signals.html">Siqnallar</a>
   <a href="calendar.html">Təqvim</a>
   <a href="tactics.html">Taktikalar</a>
   <a href="skor.html">Skor</a>
   <a href="fav.html">Sevimli</a>
-</div>
-<div class="chips" id="chips">
-  <button class="chip on" data-m="all">Hamısı</button>
-  <button class="chip" data-m="crypto">Crypto</button>
-  <button class="chip" data-m="stock">Stocks</button>
-  <button class="chip" data-m="com">Əmtəə</button>
-</div>
-<div id="status"><span class="dot"></span>Yüklənir...</div>
+</nav>
+<div class="scrim" id="scrim" onclick="toggleDrawer()"></div>
 
-<div class="bar">
-  <input id="add" placeholder="Məs: ARBUSDT" autocapitalize="characters">
-  <button class="act" id="addBtn" onclick="addSym()">+ Əlavə et</button>
-  <button class="ghost" onclick="refresh(true)">Yenilə</button>
+<div class="marquee"><div class="mtrack" id="mtrack"></div></div>
+
+<div class="wrap">
+  <div class="toolbar">
+    <input id="search" placeholder="Axtar: BTC, SOL..." autocomplete="off">
+  </div>
+  <div class="chips" id="chips">
+    <button class="chip" data-m="all">Hamısı</button>
+    <button class="chip" data-m="crypto">Crypto</button>
+    <button class="chip" data-m="stock">Stocks</button>
+    <button class="chip" data-m="com">Əmtəə</button>
+  </div>
+  <div id="status"><span class="dot"></span>Yüklənir...</div>
+
+  <div class="bar">
+    <input id="add" placeholder="Məs: ARBUSDT" autocapitalize="characters">
+    <button class="act" onclick="addSym()">+ Əlavə et</button>
+    <button class="ghost" onclick="refresh(true)">Yenilə</button>
+  </div>
+
+  <div class="tblwrap">
+    <table>
+      <thead><tr><th>#</th><th>Coin</th><th>Qiymət</th><th>5D</th><th>1H</th><th>4H</th><th>Hökm</th><th></th></tr></thead>
+      <tbody id="list"></tbody>
+    </table>
+  </div>
+
+  <div class="foot">Qiymət rəngi 5-dəqiqəlik istiqamətdir • Coin-ə bas — lightbox açılır • Tövsiyə deyil</div>
 </div>
 
-<div id="list"></div>
-
-<div class="foot">Coin-in üstünə bas — detal açılır • Tövsiyə deyil</div>
+<div class="lightbox" id="lb">
+  <div class="lb-scrim" onclick="closeLb()"></div>
+  <div class="lb-card">
+    <button class="lb-x" onclick="closeLb()">×</button>
+    <div id="lb-body">...</div>
+    <a class="lb-go" id="lb-go" href="#">Tam analiz →</a>
+  </div>
+</div>
 
 <script>
 const VER = "v4";
@@ -95,14 +146,9 @@ const TFS = {"1H":"60","4H":"240"};
 const CHUNK = 15;
 const MARKETS = {stock:["AAPLUSDT","NVDAUSDT","TSLAUSDT","METAUSDT","MSTRUSDT","INTCUSDT","MUUSDT","SNDKUSDT","SKHYNIXUSDT","SAMSUNGUSDT","SOXLUSDT","SOXSUSDT","GOOGLUSDT","AMZNUSDT","MSFTUSDT","QQQUSDT","DELLUSDT","MRVLUSDT","AVGOUSDT","PLTRUSDT","NBISUSDT","TQQQUSDT","EWYUSDT"], com:["XAUUSDT","XAGUSDT","XAUTUSDT","PAXGUSDT"]};
 function marketOf(s){ if(MARKETS.stock.includes(s)) return "stock"; if(MARKETS.com.includes(s)) return "com"; return "crypto"; }
-let curMkt = "all";
-try{ curMkt = localStorage.getItem("rsi_mkt") || "all"; }catch(e){}
-let favs = [];
-try{ favs = JSON.parse(localStorage.getItem("rsi_favs")) || []; }catch(e){}
-function isFav(s){ return favs.includes(s); }
-function saveFavs(){ try{ localStorage.setItem("rsi_favs", JSON.stringify(favs)); }catch(e){} }
-function toggleFav(s){ if(isFav(s)) favs=favs.filter(x=>x!==s); else favs.push(s); saveFavs(); render(lastItems); }
-let lastItems = [];
+let mkts = [];
+try{ mkts = JSON.parse(localStorage.getItem("rsi_mkts")) || []; }catch(e){}
+let searchTxt = "";
 let symbols = [];
 function save(){ try{ localStorage.setItem("rsi_symbols", JSON.stringify(symbols)); localStorage.setItem("rsi_ver", VER); }catch(e){} }
 try {
@@ -111,7 +157,17 @@ try {
   else { symbols = [...DEFAULTS]; save(); }
 }
 catch(e){ symbols = [...DEFAULTS]; }
+let favs = [];
+try{ favs = JSON.parse(localStorage.getItem("rsi_favs")) || []; }catch(e){}
+function isFav(s){ return favs.includes(s); }
+function saveFavs(){ try{ localStorage.setItem("rsi_favs", JSON.stringify(favs)); }catch(e){} }
+function toggleFav(s){ if(isFav(s)) favs=favs.filter(x=>x!==s); else favs.push(s); saveFavs(); render(lastItems); }
+let lastItems = [];
 
+function toggleDrawer(){
+  document.getElementById("drawer").classList.toggle("open");
+  document.getElementById("scrim").classList.toggle("open");
+}
 function fmt(p){
   p = Number(p);
   if(p >= 1000) return p.toLocaleString("en-US",{maximumFractionDigits:1});
@@ -135,22 +191,6 @@ function rsi(closes, period=14){
   if(al===0) return 100;
   let rs=ag/al; return 100-(100/(1+rs));
 }
-async function fetchFull(sym, interval){
-  const urls = [
-    `https://api.bybit.com/v5/market/kline?category=linear&symbol=${sym}&interval=${interval}&limit=50`,
-    `https://api.bybit.com/v5/market/kline?category=spot&symbol=${sym}&interval=${interval}&limit=50`
-  ];
-  for(const u of urls){
-    try{
-      const r = await fetch(u); const j = await r.json();
-      if(j.retCode===0 && j.result && j.result.list && j.result.list.length>25){
-        const rev = [...j.result.list].reverse();
-        return rev.map(x=>({c:Number(x[4]),h:Number(x[2]),l:Number(x[3])}));
-      }
-    }catch(e){}
-  }
-  return null;
-}
 function emaArr(src,p){
   const k=2/(p+1); const o=new Array(src.length).fill(null);
   let e=src.slice(0,p).reduce((a,b)=>a+b,0)/p; o[p-1]=e;
@@ -168,11 +208,23 @@ function pctBv(c){
   const sd=Math.sqrt(s.reduce((a,b)=>a+(b-m)*(b-m),0)/20);
   return (c[c.length-1]-(m-2*sd))/(4*sd);
 }
-function miniVerdict(o){
-  const k4=o.k4; if(!k4||!k4.length) return null;
-  const c4=k4.map(x=>x.c);
-  const r4=o.r["4H"]; if(r4==null) return null;
-  const price=o.price;
+async function fetchK(symbol, interval, limit=50){
+  const urls = [
+    `https://api.bybit.com/v5/market/kline?category=linear&symbol=${symbol}&interval=${interval}&limit=${limit}`,
+    `https://api.bybit.com/v5/market/kline?category=spot&symbol=${symbol}&interval=${interval}&limit=${limit}`
+  ];
+  for(const u of urls){
+    try{
+      const r = await fetch(u); const j = await r.json();
+      if(j.retCode===0 && j.result && j.result.list && j.result.list.length>5){
+        return [...j.result.list].reverse().map(x=>Number(x[4]));
+      }
+    }catch(e){}
+  }
+  return null;
+}
+function miniVerdict(r4, price, c4){
+  if(r4==null || !c4 || !c4.length) return null;
   const e50=emaArr(c4,50).pop();
   const mh=macdHist(c4), pb=pctBv(c4);
   const L=[];
@@ -186,43 +238,84 @@ function miniVerdict(o){
   return{al,sat,list:L,verdict:al-sat>=2?"BUY":sat-al>=2?"SELL":"NEYTRAL"};
 }
 async function loadOne(sym){
-  const out = {sym, price:null, r:{}, v:null};
-  const res = await Promise.all(Object.entries(TFS).map(async ([label, iv]) => [label, await fetchFull(sym, iv)]));
-  for(const [label, k] of res){
-    if(k){ const c=k.map(x=>x.c); out.price=c[c.length-1]; out.r[label]=rsi(c,14); out[label==="1H"?"k1":"k4"]=k; }
-    else out.r[label]=null;
+  const [c1, c4, c5] = await Promise.all([
+    fetchK(sym,"60"), fetchK(sym,"240"), fetchK(sym,"5",8)
+  ]);
+  const out = {sym, price:null, r:{}, v:null, d5:null};
+  if(c1){ out.price=c1[c1.length-1]; out.r["1H"]=rsi(c1,14); }
+  if(c4){ out.r["4H"]=rsi(c4,14); out.v=miniVerdict(out.r["4H"], out.price, c4); }
+  if(c5 && c5.length>=6){
+    const a=c5[c5.length-6], b=c5[c5.length-1];
+    const ch=(b-a)/a*100;
+    out.d5 = ch;
+    out.d5d = ch>0.05?1:ch<-0.05?-1:0;
   }
-  out.v = miniVerdict(out);
   return out;
 }
-function toggleMore(btn){
-  const box = btn.closest(".mwrap").querySelector(".morebox");
-  const open = box.style.display==="block";
-  box.style.display = open?"none":"block";
-  btn.textContent = open?"More +":"More −";
-}
+function dirCls(d){ return d===1?"up":d===-1?"down":"flat"; }
 function render(items){
   lastItems = items || [];
+  renderMarquee(lastItems);
   const el = document.getElementById("list"); el.innerHTML="";
-  const shown = items.filter(o => curMkt==="all" || marketOf(o.sym)===curMkt);
-  if(!shown.length){ el.innerHTML = `<div class="empty">Bu marketdə coin yoxdur.</div>`; return; }
-  shown.forEach(o=>{
-    const d=document.createElement("div"); d.className="mwrap";
+  const q = searchTxt.trim().toUpperCase();
+  const shown = lastItems.filter(o =>
+    (mkts.length===0 || mkts.includes(marketOf(o.sym))) &&
+    (!q || o.sym.includes(q))
+  );
+  if(!shown.length){ el.innerHTML = `<tr><td colspan="8"><div class="empty">Nəticə yoxdur.</div></td></tr>`; return; }
+  let html = "";
+  shown.forEach((o,i)=>{
     const r1=o.r["1H"], r4=o.r["4H"];
     const m = marketOf(o.sym);
     const tag = m==="crypto" ? "" : `<span class="mtag">${m==="stock"?"STOCK":"ƏMTƏƏ"}</span>`;
     const v = o.v;
-    const vb = v ? `<span class="vbadge v-${v.verdict}">${v.verdict} ${v.al}-${v.sat}</span>` : "";
-    const mb = v ? `<div class="morebox">${v.list.map(x=>`<div class="mrow"><span>${x.id}</span><span class="md-${x.d}">${x.d==="NEYTRAL"?"GÖZLƏ":x.d}</span></div>`).join("")}<div class="mrow"><span></span><a class="slink" href="coin.html?symbol=${o.sym}" style="color:#4F46E5;font-weight:700;">Tam analiz →</a></div></div>` : "";
-    d.innerHTML =
-      `<div class="row"><div class="rid"><a class="slink" href="coin.html?symbol=${o.sym}">${o.sym}</a>${tag}<div class="rprice">${o.price!=null?fmt(o.price):"-"} ${vb} <button class="morebtn" onclick="toggleMore(this)">More +</button></div></div>`+
-      `<div class="rtf"><small>1H</small><b class="${cls(r1)}">${r1!=null?r1.toFixed(0):"-"}</b></div>`+
-      `<div class="rtf"><small>4H</small><b class="${cls(r4)}">${r4!=null?r4.toFixed(0):"-"}</b></div>`+
-      `<button class="rdel fav${isFav(o.sym)?" on":""}" onclick="toggleFav('${o.sym}')">★</button>`+
-      `<button class="rdel" onclick="delSym('${o.sym}')">×</button></div>`+mb;
-    el.appendChild(d);
+    const vb = v ? `<span class="vbadge v-${v.verdict}">${v.verdict}</span>` : "";
+    const dc = o.d5==null ? `<span class="flat">—</span>` : `<span class="${dirCls(o.d5d)}">${o.d5>=0?"+":""}${o.d5.toFixed(2)}%</span>`;
+    const mb = v ? `<tr class="morerow" id="more-${o.sym}" style="display:none"><td colspan="8"><div class="morebox" style="display:block;">${v.list.map(x=>`<div class="mrow"><span>${x.id}</span><span class="md-${x.d}">${x.d==="NEYTRAL"?"GÖZLƏ":x.d}</span></div>`).join("")}<div class="mrow"><span></span><a class="slink" href="coin.html?symbol=${o.sym}" style="color:#F7B500;font-weight:700;">Tam analiz →</a></div></div></td></tr>` : "";
+    html += `<tr class="mainrow">`+
+      `<td class="flat">${i+1}</td>`+
+      `<td class="sym"><a class="slink" href="#" onclick="openLb('${o.sym}');return false;">${o.sym}</a>${tag}</td>`+
+      `<td class="num ${dirCls(o.d5d)}">${o.price!=null?fmt(o.price):"-"}</td>`+
+      `<td>${dc}</td>`+
+      `<td><span class="rsi ${cls(r1)}">${r1!=null?r1.toFixed(0):"-"}</span></td>`+
+      `<td><span class="rsi ${cls(r4)}">${r4!=null?r4.toFixed(0):"-"}</span></td>`+
+      `<td>${vb} <button class="morebtn" onclick="toggleMore('${o.sym}')">More +</button></td>`+
+      `<td><button class="iconbtn fav${isFav(o.sym)?" on":""}" onclick="toggleFav('${o.sym}')">★</button><button class="iconbtn del" onclick="delSym('${o.sym}')">×</button></td></tr>`+mb;
   });
+  el.innerHTML = html;
 }
+function renderMarquee(items){
+  const top = items.slice(0,30);
+  const one = top.map(o=>{
+    const c = o.d5==null?"flat":dirCls(o.d5d);
+    return `<span class="mq"><b>${o.sym}</b> <span class="${c}">${o.price!=null?fmt(o.price):"-"}</span></span>`;
+  }).join("");
+  document.getElementById("mtrack").innerHTML = one + one;
+}
+function toggleMore(sym){
+  const box = document.getElementById("more-"+sym);
+  if(!box) return;
+  const open = box.style.display==="table-row";
+  box.style.display = open?"none":"table-row";
+  event.target.textContent = open?"More +":"More −";
+}
+function openLb(sym){
+  const o = lastItems.find(x=>x.sym===sym);
+  if(!o) return;
+  const r1=o.r["1H"], r4=o.r["4H"], v=o.v;
+  const dc = o.d5==null ? "—" : `<span class="${dirCls(o.d5d)}">${o.d5>=0?"+":""}${o.d5.toFixed(2)}% / 25d</span>`;
+  const vb = v ? `<span class="vbadge v-${v.verdict}">${v.verdict} ${v.al}-${v.sat}</span>` : "";
+  const rows = v ? v.list.map(x=>`<div class="krow"><span>${x.id}</span><span class="md-${x.d}">${x.d==="NEYTRAL"?"GÖZLƏ":x.d}</span></div>`).join("") : "";
+  document.getElementById("lb-body").innerHTML =
+    `<div style="font-size:20px;font-weight:800;">${o.sym}</div>`+
+    `<div class="lb-price ${dirCls(o.d5d)}">${o.price!=null?fmt(o.price):"-"}</div>`+
+    `<div class="krow"><span>5D dəyişmə</span><span>${dc}</span></div>`+
+    `<div class="krow"><span>RSI 1H / 4H</span><span>${r1!=null?r1.toFixed(1):"-"} / ${r4!=null?r4.toFixed(1):"-"}</span></div>`+
+    `<div class="krow"><span>Hökm</span><span>${vb}</span></div>`+rows;
+  document.getElementById("lb-go").href = "coin.html?symbol="+o.sym;
+  document.getElementById("lb").classList.add("open");
+}
+function closeLb(){ document.getElementById("lb").classList.remove("open"); }
 let runId = 0, timer = null, count = 60;
 async function refresh(manual){
   const my = ++runId;
@@ -255,10 +348,23 @@ function addSym(){
   refresh(true);
 }
 function delSym(s){ symbols=symbols.filter(x=>x!==s); save(); refresh(true); }
-document.getElementById("add").addEventListener("keydown",e=>{ if(e.key==="Enter") addSym(); });
-function syncChips(){ document.querySelectorAll("#chips .chip").forEach(b => b.classList.toggle("on", b.dataset.m===curMkt)); }
-function setMkt(m){ curMkt = m; try{ localStorage.setItem("rsi_mkt", m); }catch(e){} syncChips(); refresh(true); }
+function syncChips(){
+  document.querySelectorAll("#chips .chip").forEach(b=>{
+    const m = b.dataset.m;
+    const on = m==="all" ? mkts.length===0 : mkts.includes(m);
+    b.classList.toggle("on", on);
+  });
+}
+function setMkt(m){
+  if(m==="all"){ mkts = []; }
+  else if(mkts.includes(m)){ mkts = mkts.filter(x=>x!==m); }
+  else { mkts.push(m); }
+  try{ localStorage.setItem("rsi_mkts", JSON.stringify(mkts)); }catch(e){}
+  syncChips(); render(lastItems);
+}
 document.querySelectorAll("#chips .chip").forEach(b => b.addEventListener("click", () => setMkt(b.dataset.m)));
+document.getElementById("add").addEventListener("keydown",e=>{ if(e.key==="Enter") addSym(); });
+document.getElementById("search").addEventListener("input",e=>{ searchTxt = e.target.value; render(lastItems); });
 syncChips();
 refresh(false);
 </script>

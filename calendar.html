@@ -36,7 +36,23 @@
   .info small { color: #64748B; }
   .left { color: #4F46E5; }
   .foot { color: #64748B; border-color: #E2E8F0; }
-  .logo { background: #4F46E5; }
+  .logo { background: #F7B500 !important; }
+  body { background: #0B0E11 !important; color: #F2F5F0 !important; font-family: Inter, -apple-system, "Segoe UI", Arial, sans-serif !important; }
+  h1 { color: #F2F5F0 !important; }
+  .sub, .foot { color: #8A94A6 !important; }
+  .foot { border-color: #232B38 !important; }
+  .card { background: #12161C !important; border-color: #232B38 !important; }
+  .nav a { background: #12161C !important; border-color: #2A3342 !important; color: #F2F5F0 !important; }
+  .nav a.on { background: #F7B500 !important; border-color: #F7B500 !important; color: #111 !important; }
+  input, input[type="date"] { background: #12161C !important; border-color: #2A3342 !important; color: #F2F5F0 !important; font-family: inherit; color-scheme: dark; }
+  button.ghost { background: #12161C !important; border-color: #2A3342 !important; color: #F2F5F0 !important; }
+  .bar2 { display: flex; gap: 8px; margin: 8px 0; }
+  .bar2 input { flex: 1; min-width: 0; padding: 10px; border-radius: 10px; font-size: 14px; }
+  .date { background: #1A212C !important; }
+  .date small, .info small { color: #8A94A6 !important; }
+  .left { color: #F7B500 !important; }
+  .card.past { opacity: .45; }
+  .card.today { border-color: #F7B500 !important; }
 </style>
 </head>
 <body>
@@ -50,23 +66,31 @@
   <a href="skor.html">Skor</a>
   <a href="fav.html">Sevimli</a>
 </div>
+<div class="bar2">
+  <input type="date" id="dpick">
+  <button class="ghost" onclick="applyDate()">Göstər</button>
+  <button class="ghost" onclick="clearDate()">Hamısı</button>
+</div>
 <div id="list"><div class="card">Yüklənir...</div></div>
 <div class="foot">Yeni hadisə əlavə etmək üçün de — araşdırıb salıram.</div>
 
 <script>
 const MO = ["yan","fev","mar","apr","may","iyn","iyl","avq","sen","okt","noy","dek"];
-async function main(){
+let ALL = [];
+let FILTER = "";
+function applyDate(){ FILTER = document.getElementById("dpick").value || ""; paint(); }
+function clearDate(){ FILTER = ""; document.getElementById("dpick").value = ""; paint(); }
+function paint(){
   const el = document.getElementById("list");
-  try{
-    const r = await fetch("events.json");
-    const j = await r.json();
-    const evs = j.events.slice().sort((a,b)=> a.date < b.date ? -1 : 1);
-    const now = new Date(); now.setHours(0,0,0,0);
-    el.innerHTML = "";
-    evs.forEach(e=>{
-      const d = new Date(e.date + "T00:00:00");
-      const diff = Math.round((d - now)/86400000);
-      const label = diff < 0 ? "keçib" : diff === 0 ? "BU GÜN" : diff === 1 ? "sabah" : diff + " gün";
+  const now = new Date(); now.setHours(0,0,0,0);
+  el.innerHTML = "";
+  let n = 0;
+  ALL.forEach(e=>{
+    if(FILTER && e.date < FILTER) return;
+    n++;
+    const d = new Date(e.date + "T00:00:00");
+    const diff = Math.round((d - now)/86400000);
+    const label = diff < 0 ? "keçib" : diff === 0 ? "BU GÜN" : diff === 1 ? "sabah" : diff + " gün";
       const cls = diff < 0 ? "card past" : diff === 0 ? "card today" : "card";
       const div = document.createElement("div");
       div.className = cls;
@@ -75,6 +99,15 @@ async function main(){
         `<div class="left">${label}</div>`;
       el.appendChild(div);
     });
+    if(!n) el.innerHTML = `<div class="card">Bu tarixdən sonra hadisə yoxdur.</div>`;
+}
+async function main(){
+  const el = document.getElementById("list");
+  try{
+    const r = await fetch("events.json");
+    const j = await r.json();
+    ALL = j.events.slice().sort((a,b)=> a.date < b.date ? -1 : 1);
+    paint();
   }catch(e){
     el.innerHTML = `<div class="card">Təqvim yüklənmədi.</div>`;
   }
