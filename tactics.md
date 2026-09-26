@@ -196,3 +196,12 @@
 ## T33 — BOS / CHoCH detektoru (CANLIDIR)
 - Qayda: pivot struktur + bağlı şamla qırılma. Trend istiqamətində = BOS (davam), əksinə = CHoCH (dönüş xəbəri). Təzə hadisə = 1 xal.
 - Status: coin.html-də kart + skor.html-də 1 xal.
+
+## T34 — Ichimoku full razılıq (CANLIDIR)
+- Mənbə: Modern Ichimoku təsviri — Tenkan 9 / Kijun 26 / Senkou 52, Chikou 26.
+- Qayda: qiymət buludun üstündə + Tenkan>Kijun + Chikou yuxarıda = full bull (əksi bear) = 1 xal.
+- Status: coin.html-də kart + skor.html-də 1 xal.
+
+## T35 — Supertrend flip (CANLIDIR)
+- Qayda: ATR-14 bandı ±3, yaddaşlı trend. Təzə flip (≤3 şam) = 1 xal.
+- Status: coin.html-də kart + skor.html-də 1 xal.

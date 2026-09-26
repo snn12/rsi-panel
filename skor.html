@@ -83,7 +83,7 @@
 <div id="list"></div>
 
 <div class="foot">
-  Xal: T1 ekstrem • T2 zona • T4 trend • T6 momentum • T7 band • T11 funding • T12 həcm • T13 XAU • T14 ALQO • T15 FVG • T16 sweep • T17 SMT • T19 daily • T20 SSL • T21 kernel • T22 UMA • T23 OTE • T24 OB • T25 MACD • T26 retest • T27 link • T29 VPM • T30 RMS • T31 RSIPro • T32 BAND • T33 BOS • T3 div • T5 cross • T8 squeeze • T10 breakout • T18 turtle.<br>
+  Xal: T1 ekstrem • T2 zona • T4 trend • T6 momentum • T7 band • T11 funding • T12 həcm • T13 XAU • T14 ALQO • T15 FVG • T16 sweep • T17 SMT • T19 daily • T20 SSL • T21 kernel • T22 UMA • T23 OTE • T24 OB • T25 MACD • T26 retest • T27 link • T29 VPM • T30 RMS • T31 RSIPro • T32 BAND • T33 BOS • T3 div • T5 cross • T8 squeeze • T10 breakout • T18 turtle • T12 vol • T34 ichi • T35 super.<br>
   Data: Bybit public API. Tövsiyə deyil.
 </div>
 
@@ -653,6 +653,43 @@ function turtleSoup(kl,tol=0.0015){
   }
   return best;
 }
+function ichimoku(kl){
+  const H=kl.map(x=>x.h),L=kl.map(x=>x.l),C=kl.map(x=>x.c);
+  const n=C.length-1;
+  if(n<60) return null;
+  const mx=a=>Math.max(...a), mn=a=>Math.min(...a);
+  const tAt=i=>{const a=H.slice(i-8,i+1),b=L.slice(i-8,i+1);return(mx(a)+mn(b))/2;};
+  const kAt=i=>{const a=H.slice(i-25,i+1),b=L.slice(i-25,i+1);return(mx(a)+mn(b))/2;};
+  const bAt=i=>{const a=H.slice(i-51,i+1),b=L.slice(i-51,i+1);return(mx(a)+mn(b))/2;};
+  const i0=n-26;
+  const sA=(tAt(i0)+kAt(i0))/2, sB=bAt(i0);
+  const top=Math.max(sA,sB), bot=Math.min(sA,sB);
+  const pos=C[n]>top?1:C[n]<bot?-1:0;
+  const tk=tAt(n)>kAt(n)?1:tAt(n)<kAt(n)?-1:0;
+  const ch=C[n]>C[n-26]?1:C[n]<C[n-26]?-1:0;
+  return{full:pos===1&&tk===1&&ch===1?1:pos===-1&&tk===-1&&ch===-1?-1:0};
+}
+function supertrend(kl,atrP=14,mult=3){
+  const H=kl.map(x=>x.h),L=kl.map(x=>x.l),C=kl.map(x=>x.c);
+  const n=C.length-1;
+  const aS=atrSeries(H,L,C,atrP);
+  if(aS[n]==null) return null;
+  const fU=new Array(n+1).fill(null), fD=new Array(n+1).fill(null);
+  let st=0, flip=-1, s=14;
+  while(s<=n && aS[s]==null) s++;
+  if(s>n) return null;
+  fU[s]=(H[s]+L[s])/2+mult*aS[s]; fD[s]=(H[s]+L[s])/2-mult*aS[s];
+  for(let i=s+1;i<=n;i++){
+    const up=(H[i]+L[i])/2+mult*aS[i], dn=(H[i]+L[i])/2-mult*aS[i];
+    fU[i]=(up<fU[i-1]||C[i-1]>fU[i-1])?up:fU[i-1];
+    fD[i]=(dn>fD[i-1]||C[i-1]<fD[i-1])?dn:fD[i-1];
+    if(st===0){ if(C[i]>fU[i]){st=1;flip=i;} else if(C[i]<fD[i]){st=-1;flip=i;} }
+    else if(st===1){ if(C[i]<fD[i]){st=-1;flip=i;} }
+    else { if(C[i]>fU[i]){st=1;flip=i;} }
+  }
+  if(st===0) return null;
+  return{state:st,flipAgo:n-flip};
+}
 function pivHL(kl,k=3){
   const H=[],L=[];
   for(let i=k;i<kl.length-k;i++){
@@ -762,7 +799,6 @@ async function scoreSym(sym){
   else if(pctB<0.2) hits.push("T7 alt band");
   if(funding!=null && funding>=0.05) hits.push("T11 long sıx");
   else if(funding!=null && funding<=-0.05) hits.push("T11 short sıx");
-  if(spike && r4!=null && (r4>=70||r4<=30)) hits.push("T12 həcmli");
   const tg = t14signal(k4);
   let plan = null;
   if(tg.state!=="YOXL"){ hits.push("T14 " + tg.state); plan = {dir:tg.state, e:tg.entry, sl:tg.sl, tp1:tg.tp1, tp2:tg.tp2}; }
@@ -836,8 +872,16 @@ async function scoreSym(sym){
   if(dc) hits.push("T10 breakout " + (dc.dir===1?"up":"dn"));
   const ts18 = turtleSoup(k4);
   if(ts18) hits.push("T18 turtle " + (ts18.dir===1?"bull":"bear"));
+  const v4a = k4.map(x=>x.v);
+  const vA = v4a.slice(-22,-2).reduce((a,b)=>a+b,0)/20;
+  const spike = v4a[v4a.length-2] > 2*vA;
+  if(spike && r4!=null && (r4>=70||r4<=30)) hits.push("T12 həcmli");
+  const ich = ichimoku(k4.slice(0,-1));
+  if(ich && ich.full!==0) hits.push("T34 ichi " + (ich.full===1?"bull":"bear"));
+  const spt = supertrend(k4.slice(0,-1));
+  if(spt && spt.flipAgo<=3) hits.push("T35 super " + (spt.state===1?"BUY":"SELL"));
   const t17x = (sym==="BTCUSDT"||sym==="ETHUSDT") ? 1 : 0;
-  return {sym, price, score: hits.length, max: 29+t17x+(isXau?1:0), hits, plan};
+  return {sym, price, score: hits.length, max: 31+t17x+(isXau?1:0), hits, plan};
 }
 function render(items){
   const el = document.getElementById("list"); el.innerHTML="";

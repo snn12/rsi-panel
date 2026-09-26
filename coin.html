@@ -100,6 +100,11 @@
 </div>
 
 <div class="card">
+  <h3>ICHIMOKU + SUPER (T34 / T35)</h3>
+  <div id="ichs"></div>
+</div>
+
+<div class="card">
   <h3>MOMENTUM + OTE + OB (T22 / T23 / T24)</h3>
   <div id="mobo"></div>
 </div>
@@ -705,6 +710,43 @@ function turtleSoup(kl,tol=0.0015){
   }
   return best;
 }
+function ichimoku(kl){
+  const H=kl.map(x=>x.h),L=kl.map(x=>x.l),C=kl.map(x=>x.c);
+  const n=C.length-1;
+  if(n<60) return null;
+  const mx=a=>Math.max(...a), mn=a=>Math.min(...a);
+  const tAt=i=>{const a=H.slice(i-8,i+1),b=L.slice(i-8,i+1);return(mx(a)+mn(b))/2;};
+  const kAt=i=>{const a=H.slice(i-25,i+1),b=L.slice(i-25,i+1);return(mx(a)+mn(b))/2;};
+  const bAt=i=>{const a=H.slice(i-51,i+1),b=L.slice(i-51,i+1);return(mx(a)+mn(b))/2;};
+  const i0=n-26;
+  const sA=(tAt(i0)+kAt(i0))/2, sB=bAt(i0);
+  const top=Math.max(sA,sB), bot=Math.min(sA,sB);
+  const pos=C[n]>top?1:C[n]<bot?-1:0;
+  const tk=tAt(n)>kAt(n)?1:tAt(n)<kAt(n)?-1:0;
+  const ch=C[n]>C[n-26]?1:C[n]<C[n-26]?-1:0;
+  return{pos,tk,ch,top,bot,full:pos===1&&tk===1&&ch===1?1:pos===-1&&tk===-1&&ch===-1?-1:0};
+}
+function supertrend(kl,atrP=14,mult=3){
+  const H=kl.map(x=>x.h),L=kl.map(x=>x.l),C=kl.map(x=>x.c);
+  const n=C.length-1;
+  const aS=atrSeries(H,L,C,atrP);
+  if(aS[n]==null) return null;
+  const fU=new Array(n+1).fill(null), fD=new Array(n+1).fill(null);
+  let st=0, flip=-1, s=14;
+  while(s<=n && aS[s]==null) s++;
+  if(s>n) return null;
+  fU[s]=(H[s]+L[s])/2+mult*aS[s]; fD[s]=(H[s]+L[s])/2-mult*aS[s];
+  for(let i=s+1;i<=n;i++){
+    const up=(H[i]+L[i])/2+mult*aS[i], dn=(H[i]+L[i])/2-mult*aS[i];
+    fU[i]=(up<fU[i-1]||C[i-1]>fU[i-1])?up:fU[i-1];
+    fD[i]=(dn>fD[i-1]||C[i-1]<fD[i-1])?dn:fD[i-1];
+    if(st===0){ if(C[i]>fU[i]){st=1;flip=i;} else if(C[i]<fD[i]){st=-1;flip=i;} }
+    else if(st===1){ if(C[i]<fD[i]){st=-1;flip=i;} }
+    else { if(C[i]>fU[i]){st=1;flip=i;} }
+  }
+  if(st===0) return null;
+  return{state:st,flipAgo:n-flip};
+}
 function t14signal(kl){
   const closed = kl.slice(0,-1);
   if(closed.length<60) return {state:"YOXL"};
@@ -875,6 +917,9 @@ async function main(){
     else if(x<=20) ex.push(`${k} ${x.toFixed(1)} SOYULMUŞ`);
   });
   const zone = x => x==null ? "—" : x>55 ? "bullish" : x<45 ? "bearish" : "neytral";
+  const v4a = h4.map(x=>x.v);
+  const vA = v4a.slice(-22,-2).reduce((a,b)=>a+b,0)/20;
+  const spike = v4a[v4a.length-2] > 2*vA;
   let fundTxt = "perp deyil / yoxdur";
   if(funding!=null){
     fundTxt = (funding>=0?"+":"")+funding.toFixed(4)+" %/8s — " +
@@ -949,6 +994,9 @@ async function main(){
       case "T8": return sq.rel===1?"AL":sq.rel===-1?"SAT":"GOZLE";
       case "T10": return dc?(dc.dir===1?"AL":"SAT"):"GOZLE";
       case "T18": return ts18?(ts18.dir===1?"AL":"SAT"):"GOZLE";
+      case "T12": return (spike&&r4!=null&&(r4>=70||r4<=30))?(r4>=70?"SAT":"AL"):"GOZLE";
+      case "T34": return (ich&&ich.full!==0)?(ich.full===1?"AL":"SAT"):"GOZLE";
+      case "T35": return (spt&&spt.flipAgo<=3)?(spt.state===1?"AL":"SAT"):"GOZLE";
       default: return "GOZLE";
     }
   }
@@ -1043,6 +1091,12 @@ async function main(){
   const sq = squeezeState(h4);
   const dc = donchian(h4);
   const ts18 = turtleSoup(h4);
+  const ich = ichimoku(h4.slice(0,-1));
+  const spt = supertrend(h4.slice(0,-1));
+  const krow4 = (k,v) => `<div class="krow"><span>${k}</span><span>${v}</span></div>`;
+  document.getElementById("ichs").innerHTML =
+    krow4("Ichimoku", ich ? `${ich.pos===1?"bulud üstü":ich.pos===-1?"bulud altı":"bulud içi"} • TK ${ich.tk===1?"bull":ich.tk===-1?"bear":"flat"} • Chikou ${ich.ch===1?"bull":ich.ch===-1?"bear":"flat"}` : "data azdır") +
+    krow4("Supertrend", spt ? `${spt.state===1?"bullish":"bearish"} • flip ${spt.flipAgo}` : "—");
   document.getElementById("tacts").innerHTML =
     trow("T1", ex.length ? ex.join(" • ") : "Ekstrem yoxdur") +
     trow("T3", dv3 ? `${dv3.dir===1?"Bullish":"Bearish"} divergensiya → 1 XAL` : "Divergensiya yoxdur") +
@@ -1056,6 +1110,7 @@ async function main(){
     trow("T10", dc ? `Donchian breakout ${dc.dir===1?"yuxarı":"aşağı"} + həcm → 1 XAL` : "Breakout yoxdur") +
     trow("T18", ts18 ? `Turtle Soup ${ts18.dir===1?"bullish":"bearish"} → 1 XAL` : "Turtle Soup yoxdur") +
     trow("T11", "Funding: " + fundTxt) +
+    trow("T12", spike && r4!=null && (r4>=70||r4<=30) ? "Həcmli ekstrem → 1 XAL" : "Həcm təsdiqi yoxdur") +
     (t13txt ? trow("T13", t13txt) : "") +
     trow("T14", t14txt) +
     trow("T15", t15txt) +
@@ -1074,7 +1129,9 @@ async function main(){
     trow("T30", rm && rm.reg!==0 && rm.fresh ? `RMS ${rm.reg===1?"bull":"bear"} → 1 XAL` : "RMS flip yoxdur") +
     trow("T31", rp && ((rp.regime==="BULL"&&rp.score>=4)||(rp.regime==="BEAR"&&rp.score<=1)) ? `RSI Pro ${rp.regime==="BULL"?"bull "+rp.score:"bear "+(5-rp.score)} → 1 XAL` : "RSI Pro razılıq yoxdur") +
     trow("T32", bf && bf.flipAgo<=3 ? `BAND ${bf.state===1?"BUY":"SELL"} • TP1 ${fmt(bf.tps[0])} → 1 XAL` : "Band siqnal yoxdur") +
-    trow("T33", bc && bc.event ? `${bc.event} • trend ${bc.trend} → 1 XAL` : "BOS/CHoCH yoxdur");
+    trow("T33", bc && bc.event ? `${bc.event} • trend ${bc.trend} → 1 XAL` : "BOS/CHoCH yoxdur") +
+    trow("T34", ich && ich.full!==0 ? `Ichimoku full ${ich.full===1?"bull":"bear"} → 1 XAL` : "Ichimoku razılıq yoxdur") +
+    trow("T35", spt && spt.flipAgo<=3 ? `SUPER ${spt.state===1?"BUY":"SELL"} → 1 XAL` : "Supertrend siqnal yoxdur");
 
   document.getElementById("status").textContent = "Son yeniləmə: " + new Date().toLocaleString("az-AZ",{timeZone:"Asia/Baku"}) + (nyActive() ? " • NY sessiya" : " • sakit saat");
   try{
