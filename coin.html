@@ -114,6 +114,11 @@
 </div>
 
 <div class="card">
+  <h3>TİCARƏT PLANI (TP / SL)</h3>
+  <div id="plan"></div>
+</div>
+
+<div class="card">
   <h3>GÖSTƏRİCİLƏR (4H)</h3>
   <div id="inds"></div>
 </div>
@@ -864,6 +869,20 @@ async function main(){
     `<div class="krow"><span>RSI Pro</span><span>${rp?`${rp.bias}/${rp.mom}/${rp.regime} • skor ${rp.score}/5`:"—"}</span></div>` +
     `<div class="krow"><span>Band Flow</span><span>${bf?`${bf.state===1?"bullish":"bearish"} • flip ${bf.flipAgo}`:"—"}</span></div>` +
     `<div class="krow"><span>BOS/CHoCH</span><span>${bc?`${bc.trend} • ${bc.event||"—"}`:"—"}</span></div>`;
+  const plans = [];
+  if(tg.state==="BUY"||tg.state==="SELL") plans.push({t:"T14", dir:tg.state, e:tg.entry, sl:tg.sl, tp:[tg.tp1,tg.tp2]});
+  if(bf && bf.flipAgo<=3 && bf.entry!=null){
+    const up = bf.state===1;
+    plans.push({t:"T28", dir:up?"BUY":"SELL", e:bf.entry, sl:up?bf.entry-2*a:bf.entry+2*a, tp:[bf.tps[0],bf.tps[1]]});
+  }
+  document.getElementById("plan").innerHTML = plans.length ? plans.map(p=>{
+    const r1 = Math.abs(p.tp[0]-p.e)/Math.abs(p.e-p.sl), r2 = Math.abs(p.tp[1]-p.e)/Math.abs(p.e-p.sl);
+    const up = p.dir==="BUY";
+    return `<div class="krow"><span>${p.t} ${p.dir} @ ${fmt(p.e)}</span><span class="${up?"up":"down"}">${p.dir}</span></div>` +
+      `<div class="krow"><span>SL</span><span class="down">${fmt(p.sl)}</span></div>` +
+      `<div class="krow"><span>TP1 (${r1.toFixed(1)}R)</span><span class="up">${fmt(p.tp[0])}</span></div>` +
+      `<div class="krow"><span>TP2 (${r2.toFixed(1)}R)</span><span class="up">${fmt(p.tp[1])}</span></div>`;
+  }).join("") : `<div class="krow"><span>Plan</span><span class="flat">aktiv siqnal yoxdur</span></div>`;
   document.getElementById("tacts").innerHTML =
     trow("T1", ex.length ? ex.join(" • ") : "Ekstrem yoxdur") +
     trow("T2", `1H: ${zone(r1)} • 4H: ${zone(r4)}`) +
