@@ -66,6 +66,8 @@
   .morebtn { background: transparent; border: 0; color: #F7B500; font-size: 12px; font-weight: 700; padding: 2px 4px; font-family: inherit; }
   tr.morerow td { background: #0E1319; }
   .morebox { display: none; }
+  .morebox.open { column-count: 2; column-gap: 18px; }
+  .morebox.open .mrow { break-inside: avoid; }
   .mrow { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; }
   .md-AL { color: #16C784; font-weight: 700; }
   .md-SAT { color: #EA3943; font-weight: 700; }
@@ -297,6 +299,8 @@ function toggleMore(sym){
   if(!box) return;
   const open = box.style.display==="table-row";
   box.style.display = open?"none":"table-row";
+  const inner = box.querySelector(".morebox");
+  if(inner) inner.classList.toggle("open", !open);
   event.target.textContent = open?"More +":"More −";
 }
 function openLb(sym){
