@@ -81,6 +81,7 @@
 <div class="card">
   <h3>ÜMUMİ İSTİQAMƏT (1H + 4H)</h3>
   <div class="verdict v-flat" id="verdict">...</div>
+  <div id="coal" style="margin-top:8px;font-size:13px;color:#64748B;"></div>
 </div>
 
 <div class="card">
@@ -1132,6 +1133,13 @@ async function main(){
     trow("T33", bc && bc.event ? `${bc.event} • trend ${bc.trend} → 1 XAL` : "BOS/CHoCH yoxdur") +
     trow("T34", ich && ich.full!==0 ? `Ichimoku full ${ich.full===1?"bull":"bear"} → 1 XAL` : "Ichimoku razılıq yoxdur") +
     trow("T35", spt && spt.flipAgo<=3 ? `SUPER ${spt.state===1?"BUY":"SELL"} → 1 XAL` : "Supertrend siqnal yoxdur");
+  const tids = ["T1","T2","T4","T6","T7","T11","T12","T14","T15","T16","T17","T19","T20","T21","T22","T23","T24","T25","T26","T27","T29","T30","T31","T32","T33","T3","T5","T8","T10","T18","T34","T35"];
+  if(SYM.indexOf("XAU")===0) tids.push("T13");
+  let nAl=0, nSat=0;
+  tids.forEach(id=>{ const d=tdir(id); if(d==="AL")nAl++; else if(d==="SAT")nSat++; });
+  const coal = (nAl-nSat>=3)?"BUY":(nSat-nAl>=3)?"SELL":"NEYTRAL";
+  const coalEl = document.getElementById("coal");
+  coalEl.textContent = `Koalisiya: ${coal} ${nAl}-${nSat} (AL-SAT)`;
 
   document.getElementById("status").textContent = "Son yeniləmə: " + new Date().toLocaleString("az-AZ",{timeZone:"Asia/Baku"}) + (nyActive() ? " • NY sessiya" : " • sakit saat");
   try{

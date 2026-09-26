@@ -41,6 +41,17 @@
   .card { background: #fff; border-color: #E2E8F0; box-shadow: 0 1px 4px rgba(15,29,56,.06); }
   .score { background: #4F46E5; }
   .hit { background: #F1F5F9; border-color: #E2E8F0; }
+  .vrow { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+  .verdict { font-weight: 700; font-size: 13px; border-radius: 10px; padding: 4px 12px; }
+  .v-BUY { background: #16A34A; color: #fff; }
+  .v-SELL { background: #DC2626; color: #fff; }
+  .v-NEYTRAL { background: #F1F5F9; color: #64748B; border: 1px solid #E2E8F0; }
+  .morebtn { margin-left: auto; padding: 4px 12px; border-radius: 10px; border: 1px solid #E2E8F0; background: #fff; font-size: 13px; font-weight: 600; }
+  .morebox { display: none; margin-top: 8px; border-top: 1px solid #E2E8F0; padding-top: 6px; }
+  .mrow { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; }
+  .md-AL { color: #16A34A; font-weight: 700; }
+  .md-SAT { color: #DC2626; font-weight: 700; }
+  .md-NEYTRAL { color: #94A3B8; }
   .planline { margin-top: 8px; font-size: 13px; font-weight: 600; color: #0F1D38; background: #F1F5F9; border-radius: 10px; padding: 7px 10px; font-variant-numeric: tabular-nums; }
   .mtag { color: #4F46E5; border-color: #4F46E5; }
   .chip { background: #fff; border-color: #E2E8F0; color: #0F1D38; }
@@ -879,8 +890,60 @@ async function scoreSym(sym){
   if(ich && ich.full!==0) hits.push("T34 ichi " + (ich.full===1?"bull":"bear"));
   const spt = supertrend(k4.slice(0,-1));
   if(spt && spt.flipAgo<=3) hits.push("T35 super " + (spt.state===1?"BUY":"SELL"));
+  const dirs = [];
+  const D = (id,d)=>dirs.push({id,d});
+  const hot=(r1!=null&&r1>=75)||(r4!=null&&r4>=75), cold=(r1!=null&&r1<=20)||(r4!=null&&r4<=20);
+  D("T1", hot&&!cold?"SAT":cold&&!hot?"AL":"NEYTRAL");
+  D("T2", r4==null?"NEYTRAL":r4>55?"AL":r4<45?"SAT":"NEYTRAL");
+  D("T4", price>e50?"AL":price<e50?"SAT":"NEYTRAL");
+  D("T6", hist>0?"AL":hist<0?"SAT":"NEYTRAL");
+  D("T7", pctB>0.8?"SAT":pctB<0.2?"AL":"NEYTRAL");
+  D("T11", funding==null?"NEYTRAL":funding>=0.05?"SAT":funding<=-0.05?"AL":"NEYTRAL");
+  D("T12", (spike&&r4!=null&&(r4>=70||r4<=30))?(r4>=70?"SAT":"AL"):"NEYTRAL");
+  D("T14", tg.state==="BUY"?"AL":tg.state==="SELL"?"SAT":"NEYTRAL");
+  D("T15", nB&&!nS?"AL":nS&&!nB?"SAT":"NEYTRAL");
+  let d16 = "NEYTRAL";
+  if(sw) d16 = sw.side===-1?"SAT":"AL";
+  else {
+    const inv2 = fz.filter(z=>z.inv).slice(-3).find(z=> z.dir===1 ? (price<z.bot&&(z.bot-price)/price*100<=2*ap) : (price>z.top&&(price-z.top)/price*100<=2*ap));
+    if(inv2) d16 = inv2.dir===1?"SAT":"AL";
+  }
+  D("T16", d16);
+  D("T13", (!isXau||r4==null)?"NEYTRAL":(price>=Math.min(...l4.slice(-50))&&r4>=50)?"AL":"NEYTRAL");
+  D("T17", ((sym!=="BTCUSDT"&&sym!=="ETHUSDT")||!SMT)?"NEYTRAL":SMT.dir===1?"AL":"SAT");
+  D("T19", !dsw?"NEYTRAL":dsw.dir===1?"AL":"SAT");
+  D("T20", (s4x&&s4x.dir!==0&&s4x.score>=55)?(s4x.dir===1?"AL":"SAT"):"NEYTRAL");
+  D("T21", (kf4&&kf4.flip<=5&&kf4.state!==0)?(kf4.state===1?"AL":"SAT"):"NEYTRAL");
+  D("T22", (uma&&uma.power)?(uma.bias===1?"AL":"SAT"):"NEYTRAL");
+  D("T23", (ote&&ote.inside)?(ote.dir===1?"AL":"SAT"):"NEYTRAL");
+  const obB = obs.bull && price<=obs.bull.top+0.5*a4b && price>=obs.bull.bot-0.5*a4b;
+  const obS = obs.bear && price>=obs.bear.bot-0.5*a4b && price<=obs.bear.top+0.5*a4b;
+  D("T24", obB&&!obS?"AL":obS&&!obB?"SAT":"NEYTRAL");
+  D("T25", (t25&&t25.dir!==0)?(t25.dir===1?"AL":"SAT"):"NEYTRAL");
+  D("T26", "NEYTRAL");
+  D("T27", "NEYTRAL");
+  D("T29", (vp&&((vp.state===1&&vp.fresh&&!vp.ranging)||(vp.state===-1&&vp.fresh)))?(vp.state===1?"AL":"SAT"):"NEYTRAL");
+  D("T30", (rm&&rm.reg!==0&&rm.fresh)?(rm.reg===1?"AL":"SAT"):"NEYTRAL");
+  D("T31", (rp&&((rp.regime==="BULL"&&rp.score>=4)||(rp.regime==="BEAR"&&rp.score<=1)))?(rp.regime==="BULL"?"AL":"SAT"):"NEYTRAL");
+  D("T32", (bf&&bf.flipAgo<=3)?(bf.state===1?"AL":"SAT"):"NEYTRAL");
+  D("T33", (bc&&bc.event)?(bc.event.indexOf("+")>=0?"AL":"SAT"):"NEYTRAL");
+  D("T3", dv3?(dv3.dir===1?"AL":"SAT"):"NEYTRAL");
+  D("T5", (gx&&gx.fresh)?(gx.dir===1?"AL":"SAT"):"NEYTRAL");
+  D("T8", sq.sqz?"NEYTRAL":sq.rel===1?"AL":sq.rel===-1?"SAT":"NEYTRAL");
+  D("T10", dc?(dc.dir===1?"AL":"SAT"):"NEYTRAL");
+  D("T18", ts18?(ts18.dir===1?"AL":"SAT"):"NEYTRAL");
+  D("T34", (ich&&ich.full!==0)?(ich.full===1?"AL":"SAT"):"NEYTRAL");
+  D("T35", (spt&&spt.flipAgo<=3)?(spt.state===1?"AL":"SAT"):"NEYTRAL");
+  const nAl = dirs.filter(x=>x.d==="AL").length, nSat = dirs.filter(x=>x.d==="SAT").length;
+  const verdict = (nAl-nSat>=3)?"BUY":(nSat-nAl>=3)?"SELL":"NEYTRAL";
   const t17x = (sym==="BTCUSDT"||sym==="ETHUSDT") ? 1 : 0;
-  return {sym, price, score: hits.length, max: 31+t17x+(isXau?1:0), hits, plan};
+  return {sym, price, score: hits.length, max: 31+t17x+(isXau?1:0), hits, plan, dirs, verdict, nAl, nSat};
+}
+function toggleMore(btn){
+  const box = btn.closest(".card").querySelector(".morebox");
+  const open = box.style.display==="block";
+  box.style.display = open?"none":"block";
+  btn.textContent = open?"More +":"More −";
 }
 function render(items){
   const el = document.getElementById("list"); el.innerHTML="";
@@ -892,8 +955,10 @@ function render(items){
     const d = document.createElement("div"); d.className = "card";
     d.innerHTML = `<div class="row1"><span class="sym"><a class="slink" href="coin.html?symbol=${o.sym}">${o.sym}</a>${tag}</span>` +
       `<span class="score">${o.score}/${o.max}</span></div>` +
+      `<div class="vrow"><span class="verdict v-${o.verdict}">${o.verdict} ${o.nAl}-${o.nSat}</span><button class="morebtn" onclick="toggleMore(this)">More +</button></div>` +
       `<div class="hits">${o.hits.map(h=>`<span class="hit">${h}</span>`).join("")}</div>` +
-      (o.plan ? `<div class="planline">${o.plan.dir} @ ${fmt(o.plan.e)} • SL ${fmt(o.plan.sl)} • TP1 ${fmt(o.plan.tp1)} • TP2 ${fmt(o.plan.tp2)}</div>` : "");
+      (o.plan ? `<div class="planline">${o.plan.dir} @ ${fmt(o.plan.e)} • SL ${fmt(o.plan.sl)} • TP1 ${fmt(o.plan.tp1)} • TP2 ${fmt(o.plan.tp2)}</div>` : "") +
+      `<div class="morebox">${o.dirs.map(x=>`<div class="mrow"><span>${x.id}</span><span class="md-${x.d}">${x.d==="NEYTRAL"?"GÖZLƏ":x.d}</span></div>`).join("")}</div>`;
     el.appendChild(d);
   });
 }

@@ -36,6 +36,17 @@
   .badge.cold { background: #F0FDF4; color: #16A34A; border: 1px solid #BBF7D0; }
   .empty { background: #fff; border: 1px solid #E2E8F0; border-radius: 14px; padding: 22px; text-align: center; color: #64748B; margin-top: 8px; }
   .foot { color: #64748B; font-size: 12px; margin-top: 14px; line-height: 1.6; text-align: center; }
+  .vline { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+  .vbadge { font-size: 10px; font-weight: 700; border-radius: 8px; padding: 2px 8px; }
+  .v-BUY { background: #16A34A; color: #fff; }
+  .v-SELL { background: #DC2626; color: #fff; }
+  .v-NEYTRAL { background: #F1F5F9; color: #64748B; }
+  .morebtn { margin-left: auto; background: transparent; border: 0; color: #4F46E5; font-size: 12px; font-weight: 700; padding: 2px 6px; }
+  .morebox { display: none; margin-top: 8px; border-top: 1px solid #E2E8F0; padding-top: 6px; }
+  .mrow { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; }
+  .md-AL { color: #16A34A; font-weight: 700; }
+  .md-SAT { color: #DC2626; font-weight: 700; }
+  .md-NEYTRAL { color: #94A3B8; }
 </style>
 </head>
 <body>
@@ -96,7 +107,7 @@ function rsi(closes, period=14){
   if(al===0) return 100;
   let rs=ag/al; return 100-(100/(1+rs));
 }
-async function fetchCloses(sym, interval){
+async function fetchFull(sym, interval){
   const urls = [
     `https://api.bybit.com/v5/market/kline?category=linear&symbol=${sym}&interval=${interval}&limit=50`,
     `https://api.bybit.com/v5/market/kline?category=spot&symbol=${sym}&interval=${interval}&limit=50`
@@ -104,22 +115,63 @@ async function fetchCloses(sym, interval){
   for(const u of urls){
     try{
       const r = await fetch(u); const j = await r.json();
-      if(j.retCode===0 && j.result && j.result.list && j.result.list.length>14){
+      if(j.retCode===0 && j.result && j.result.list && j.result.list.length>25){
         const rev = [...j.result.list].reverse();
-        return rev.map(x=>Number(x[4]));
+        return rev.map(x=>({c:Number(x[4]),h:Number(x[2]),l:Number(x[3])}));
       }
     }catch(e){}
   }
   return null;
 }
+function emaArr(src,p){
+  const k=2/(p+1); const o=new Array(src.length).fill(null);
+  let e=src.slice(0,p).reduce((a,b)=>a+b,0)/p; o[p-1]=e;
+  for(let i=p;i<src.length;i++){e=src[i]*k+e*(1-k);o[i]=e;}
+  return o;
+}
+function macdHist(c){
+  const e12=emaArr(c,12), e26=emaArr(c,26);
+  const mv=e12.map((v,i)=>v==null||e26[i]==null?null:v-e26[i]).filter(v=>v!=null);
+  const se=emaArr(mv,9);
+  return mv[mv.length-1]-se[se.length-1];
+}
+function pctBv(c){
+  const s=c.slice(-20); const m=s.reduce((a,b)=>a+b,0)/20;
+  const sd=Math.sqrt(s.reduce((a,b)=>a+(b-m)*(b-m),0)/20);
+  return (c[c.length-1]-(m-2*sd))/(4*sd);
+}
+function miniVerdict(o){
+  const k4=o.k4; if(!k4||!k4.length) return null;
+  const c4=k4.map(x=>x.c);
+  const r4=o.r["4H"]; if(r4==null) return null;
+  const price=o.price;
+  const e50=emaArr(c4,50).pop();
+  const mh=macdHist(c4), pb=pctBv(c4);
+  const L=[];
+  const put=(id,d)=>L.push({id,d});
+  put("T1", r4>=75?"SAT":r4<=20?"AL":"NEYTRAL");
+  put("T2", r4>55?"AL":r4<45?"SAT":"NEYTRAL");
+  put("T4", price>e50?"AL":price<e50?"SAT":"NEYTRAL");
+  put("T6", mh>0?"AL":mh<0?"SAT":"NEYTRAL");
+  put("T7", pb>0.8?"SAT":pb<0.2?"AL":"NEYTRAL");
+  const al=L.filter(x=>x.d==="AL").length, sat=L.filter(x=>x.d==="SAT").length;
+  return{al,sat,list:L,verdict:al-sat>=2?"BUY":sat-al>=2?"SELL":"NEYTRAL"};
+}
 async function loadOne(sym){
-  const out = {sym, price:null, r:{}};
-  const res = await Promise.all(Object.entries(TFS).map(async ([label, iv]) => [label, await fetchCloses(sym, iv)]));
-  for(const [label, c] of res){
-    if(c){ out.price = c[c.length-1]; out.r[label]=rsi(c,14); }
+  const out = {sym, price:null, r:{}, v:null};
+  const res = await Promise.all(Object.entries(TFS).map(async ([label, iv]) => [label, await fetchFull(sym, iv)]));
+  for(const [label, k] of res){
+    if(k){ const c=k.map(x=>x.c); out.price=c[c.length-1]; out.r[label]=rsi(c,14); out[label==="1H"?"k1":"k4"]=k; }
     else out.r[label]=null;
   }
+  out.v = miniVerdict(out);
   return out;
+}
+function toggleMore(btn){
+  const box = btn.closest(".row").querySelector(".morebox");
+  const open = box.style.display==="block";
+  box.style.display = open?"none":"block";
+  btn.textContent = open?"More +":"More −";
 }
 function render(items){
   const el = document.getElementById("list"); el.innerHTML="";
@@ -144,8 +196,12 @@ function render(items){
     d.className = "row " + (hasMax ? "max" : isHot ? "hot" : "cold");
     const m = marketOf(o.sym);
     const tag = m==="crypto" ? "" : `<span class="mtag">${m==="stock"?"STOCK":"ƏMTƏƏ"}</span>`;
+    const v = o.v;
+    const vb = v ? `<span class="vbadge v-${v.verdict}">${v.verdict} ${v.al}-${v.sat}</span>` : "";
+    const mb = v ? `<div class="morebox">${v.list.map(x=>`<div class="mrow"><span>${x.id}</span><span class="md-${x.d}">${x.d==="NEYTRAL"?"GÖZLƏ":x.d}</span></div>`).join("")}<div class="mrow"><span></span><a class="slink" href="coin.html?symbol=${o.sym}" style="color:#4F46E5;font-weight:700;">Tam analiz →</a></div></div>` : "";
     d.innerHTML = `<div class="row1"><span class="sym"><a class="slink" href="coin.html?symbol=${o.sym}">${o.sym}</a>${tag}</span>`+
-      `<span class="price">${o.price!=null?fmt(o.price):"-"}</span></div><div class="tags">${tags}</div>`;
+      `<span class="price">${o.price!=null?fmt(o.price):"-"}</span></div><div class="tags">${tags}</div>`+
+      `<div class="vline">${vb}<button class="morebtn" onclick="toggleMore(this)">More +</button></div>`+mb;
     el.appendChild(d);
   });
 }
