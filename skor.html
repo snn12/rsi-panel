@@ -786,7 +786,6 @@ async function scoreSym(sym){
   const m20 = avg(c4.slice(-20));
   const sd = Math.sqrt(avg(c4.slice(-20).map(x=>(x-m20)*(x-m20))));
   const pctB = (price-(m20-2*sd))/(4*sd);
-  const vAvg = avg(v4.slice(-20)), spike = v4[v4.length-1] > 2*vAvg;
   const hits = [];
   const ex = [xtreme(r1), xtreme(r4)].filter(Boolean);
   if(ex.length) hits.push("T1 " + ex.join(" / "));
