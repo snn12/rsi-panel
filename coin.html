@@ -51,6 +51,10 @@
   .db-AL { background: #16A34A; color: #fff; }
   .db-SAT { background: #DC2626; color: #fff; }
   .db-GOZLE { background: #F1F5F9; color: #64748B; border: 1px solid #E2E8F0; }
+  @property --ga { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+  .gold-spin { border: 1px solid transparent !important; border-radius: 10px; background: linear-gradient(#12161C,#12161C) padding-box, conic-gradient(from var(--ga), #F7B500, rgba(247,181,0,.12) 25%, #F7B500 50%, rgba(247,181,0,.12) 75%, #F7B500) border-box !important; box-shadow: 0 0 14px rgba(247,181,0,.45); animation: gaspin 2.4s linear infinite, goldpulse 1.6s ease-in-out infinite; }
+  @keyframes gaspin { to { --ga: 360deg; } }
+  @keyframes goldpulse { 50% { box-shadow: 0 0 24px rgba(247,181,0,.8); } }
   .mtag { color: #4F46E5; border-color: #4F46E5; }
   .up { color: #16A34A; } .down { color: #DC2626; } .flat { color: #64748B; }
   .foot { color: #64748B; border-color: #E2E8F0; }
@@ -159,7 +163,7 @@
   <div id="inds"></div>
 </div>
 
-<div class="card">
+<div class="card" id="fvgcard">
   <h3>FVG ZONALARI (T15 / T16)</h3>
   <div id="fvg"></div>
 </div>
@@ -1165,6 +1169,17 @@ async function main(){
   const coalEl = document.getElementById("coal");
   coalEl.textContent = `Koalisiya: ${coal} ${nAl}-${nSat} (AL-SAT)`;
 
+  document.querySelectorAll("#tacts .trow").forEach(r=>{
+    const t = r.textContent;
+    if(t.indexOf("Turtle Soup")>=0 && t.indexOf("→ 1 XAL")>0) r.classList.add("gold-spin");
+  });
+  const hot1 = r1!=null&&(r1>=75||r1<=20), hot4 = r4!=null&&(r4>=75||r4<=20);
+  document.querySelectorAll("#inds .krow").forEach(r=>{
+    const t = r.textContent;
+    if((t.indexOf("RSI 1H")===0&&hot1)||(t.indexOf("RSI 4H")===0&&hot4)) r.classList.add("gold-spin");
+  });
+  const fc = document.getElementById("fvgcard");
+  if(fc) fc.classList.toggle("gold-spin", !!((typeof nearB!=="undefined"&&nearB)||(typeof nearS!=="undefined"&&nearS)));
   document.getElementById("status").textContent = "Son yeniləmə: " + new Date().toLocaleString("az-AZ",{timeZone:"Asia/Baku"}) + (nyActive() ? " • NY sessiya" : " • sakit saat");
   try{
     const r = await fetch("analysis/" + SYM.toLowerCase() + ".md");
